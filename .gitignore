@@ -48,3 +48,9 @@ pnpm-debug.log*
 *.tsbuildinfo
 
 # === Lockfiles — ZOSTAWIAMY w repo (commitujemy package-lock.json / yarn.lock) ===
+
+# === Materiały do nauki (lokalne, nie dla prowadzącego / rekrutera) ===
+# Wykłady mentorskie, ćwiczenia, Q&A — pomagają uczyć się,
+# ale nie są częścią projektu oddawanego na zaliczenie.
+docs/lectures/
+
