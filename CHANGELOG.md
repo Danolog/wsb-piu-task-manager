@@ -7,6 +7,7 @@ Format wg [Keep a Changelog](https://keepachangelog.com/pl/1.1.0/) + [Semantic V
 ## [Unreleased]
 
 ### Added
+- **Etap 2 (wg briefu) — Low-Fi Wireframes + User Flow.** `Etap3_Wireframes.md` (numeracja pliku przesunięta o jeden vs brief) + 21 eksportów PNG w `docs/wireframes/`: 10 widoków mobile (360×720), 9 desktop (1328×848), 2 diagramy user flow (mobile + desktop). Źródło prawdy: edytowalny plik Figma „Wireframes v2" (natywne frame'y, nie import PDF).
 - `PLAN.md` — główny roadmap projektu (9 sekcji: stan, mapowanie brief/ocena, decyzje architektoniczne, etap-po-etapie z DoD, konwencje, harmonogram, ryzyka, „START HERE", zasoby)
 - `CHANGELOG.md` — ten plik
 - `FUTURE.md` — parking pomysłów poza zakresem semestru (ochrona przed scope creep)
@@ -19,6 +20,7 @@ Format wg [Keep a Changelog](https://keepachangelog.com/pl/1.1.0/) + [Semantic V
 ### Changed
 - `README.md` — numeracja etapów zgodna z briefem prowadzącego; testy użyteczności **przed** implementacją (wg briefu), nie po; dodana tabela statusu + kryteria oceny + szczegółowy stack
 - Status Journey Maps: z 🟡 (Anna ❌) na ✅ ukończony
+- Status Etap 2 (Wireframes) w README: z ⬜ planowany na ✅ ukończony
 
 
 ---

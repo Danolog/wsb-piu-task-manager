@@ -12,7 +12,7 @@ Projekt realizowany wg harmonogramu z briefu (7 etapów). Szczegółowy roadmap,
 |---|------------------|--------|-----------|
 | 1 | Analiza potrzeb i persony | ✅ ukończony | [`Etap1_Analiza_UX.md`](./Etap1_Analiza_UX.md) |
 | 1+ | Journey Maps (bonus, poza briefem) | ✅ ukończony (Kasia, Marek, Anna + 15 cross-persona decisions) | [`Etap2_Journey_Maps.md`](./Etap2_Journey_Maps.md) |
-| 2 | Low-Fi Wireframes + User Flow | ⬜ planowany | — |
+| 2 | Low-Fi Wireframes + User Flow | ✅ ukończony (10 mobile + 9 desktop + 2 flow, v2) | [`Etap3_Wireframes.md`](./Etap3_Wireframes.md) |
 | 3 | Prototyp Hi-Fidelity (Figma) | ⬜ planowany | — |
 | 4 | Testy użyteczności (min. 3 użytkowników) | ⬜ planowany | — |
 | 5 | Implementacja frontend (React) | ⬜ planowany | — |
@@ -29,9 +29,10 @@ Projekt realizowany wg harmonogramu z briefu (7 etapów). Szczegółowy roadmap,
 - [`FUTURE.md`](./FUTURE.md) — parking pomysłów poza zakresem semestru (ochrona przed scope creep)
 - [`Etap1_Analiza_UX.md`](./Etap1_Analiza_UX.md) — analiza UX, persony, problemy użytkownika, zakres funkcjonalny
 - [`Etap2_Journey_Maps.md`](./Etap2_Journey_Maps.md) — mapy podróży użytkownika (metodologia NN/g)
+- [`Etap3_Wireframes.md`](./Etap3_Wireframes.md) — low-fi wireframes (10 mobile + 9 desktop) + 2 user flow; link do Figmy jako źródła prawdy
 - [`TEAM_SETUP.md`](./TEAM_SETUP.md) — setup środowiska dla zespołu (git, GitHub, workflow)
 - [`docs/adr/`](./docs/adr/) — **Architecture Decision Records** (dlaczego takie decyzje, a nie inne)
-- [`docs/wireframes/`](./docs/wireframes/) — eksporty wireframes z Figmy (Etap 2, do wypełnienia)
+- [`docs/wireframes/`](./docs/wireframes/) — eksporty wireframes z Figmy (Etap 2 — 21 PNG, low-fi v2)
 - [`docs/figma-exports/`](./docs/figma-exports/) — eksporty Hi-Fi z Figmy (Etap 3, do wypełnienia)
 - [`.github/PULL_REQUEST_TEMPLATE.md`](./.github/PULL_REQUEST_TEMPLATE.md) — checklist dla każdego PR
 
