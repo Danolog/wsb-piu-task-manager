@@ -272,6 +272,7 @@ export function AllTasksPage({ preset }: AllTasksPageProps) {
             onToggle={handleToggle}
             onOpen={(id) => navigate(`/zadanie/${id}`)}
             onDelete={(id) => setPendingDelete(id)}
+            onUpdateNote={handleUpdateNote}
           />
         )}
       </div>

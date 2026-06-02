@@ -190,7 +190,7 @@ export function TaskCard({
                 {task.description}
               </span>
               <Pencil
-                className="mt-0.5 size-3 shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
+                className="mt-0.5 size-3 shrink-0 opacity-50 transition-opacity group-hover:opacity-100"
                 aria-hidden="true"
               />
             </button>
@@ -200,10 +200,13 @@ export function TaskCard({
             </span>
           )
         ) : editable ? (
+          // „Dodaj notatkę" zawsze widoczne (nie tylko na hover) — przy zadaniu
+          // bez notatki użytkownik musi mieć jawny, klikalny punkt wejścia.
+          // Stonowane (ink-muted z linią przerywaną), mocniejsze na hover/fokusie.
           <button
             type="button"
             onClick={openNoteEditor}
-            className="mt-1 inline-flex items-center gap-1 rounded-sm text-[13px] text-ink-muted opacity-0 transition-opacity group-hover:opacity-100 hover:text-ink-soft focus-visible:opacity-100 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+            className="mt-1 inline-flex items-center gap-1 rounded-sm text-[13px] text-ink-muted underline decoration-dotted underline-offset-4 transition-colors hover:text-ink-soft focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
             aria-label={`Dodaj notatkę do zadania: ${task.title}`}
           >
             <Pencil className="size-3" aria-hidden="true" />

@@ -74,6 +74,72 @@ describe('AllTasksPage / TaskTable (P-E)', () => {
     expect(within(table).getByText('Zadanie A')).toBeInTheDocument();
   });
 
+  it('tabela pokazuje notatkę (description) pod tytułem (POPRAWKA 6)', () => {
+    seedWith([
+      task({ id: 'a', title: 'Zadanie A', description: 'Rozdziały 4-6' }),
+    ]);
+    renderAll('all');
+
+    const table = screen.getByRole('table');
+    expect(within(table).getByText('Rozdziały 4-6')).toBeInTheDocument();
+  });
+
+  it('tabela: „Dodaj notatkę" widoczne dla zadania bez notatki (bez hovera) (POPRAWKA 6)', () => {
+    seedWith([task({ id: 'a', title: 'Zadanie A' })]);
+    renderAll('all');
+
+    const addNote = within(screen.getByRole('table')).getByRole('button', {
+      name: 'Dodaj notatkę do zadania: Zadanie A',
+    });
+    expect(addNote).toBeInTheDocument();
+    expect(addNote).not.toHaveClass('opacity-0');
+  });
+
+  it('tabela: inline edycja notatki zapisuje description i utrwala (POPRAWKA 6)', async () => {
+    const user = userEvent.setup();
+    seedWith([task({ id: 'a', title: 'Zadanie A' })]);
+    renderAll('all');
+
+    await user.click(
+      within(screen.getByRole('table')).getByRole('button', {
+        name: 'Dodaj notatkę do zadania: Zadanie A',
+      }),
+    );
+    await user.type(
+      screen.getByRole('textbox', { name: /Notatka zadania/ }),
+      'Notatka z tabeli',
+    );
+    await user.click(screen.getByRole('button', { name: 'Zapisz' }));
+
+    // Po zapisie notatka widoczna w wierszu (odczyt ze stanu).
+    expect(
+      within(screen.getByRole('table')).getByText('Notatka z tabeli'),
+    ).toBeInTheDocument();
+
+    // Utrwalenie: description trafiło do localStorage (reducer task/update).
+    await waitFor(() => {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      expect(raw).toContain('Notatka z tabeli');
+    });
+  });
+
+  it('tabela: klik notatki do edycji NIE otwiera pełnej edycji zadania (stopPropagation)', async () => {
+    const user = userEvent.setup();
+    seedWith([task({ id: 'a', title: 'Zadanie A', description: 'Istnieje' })]);
+    renderAll('all');
+
+    await user.click(
+      within(screen.getByRole('table')).getByRole('button', {
+        name: /Edytuj notatkę zadania/,
+      }),
+    );
+    // Otworzyła się inline-edycja, a nie ekran /zadanie/:id.
+    expect(screen.queryByText('Edycja')).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('textbox', { name: /Notatka zadania/ }),
+    ).toBeInTheDocument();
+  });
+
   it('preset „done" pokazuje tylko ukończone', () => {
     seedWith([
       task({

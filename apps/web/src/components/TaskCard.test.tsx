@@ -119,6 +119,25 @@ describe('TaskCard', () => {
     expect(screen.getByText('Rozdziały 4-6')).toBeInTheDocument();
   });
 
+  it('„Dodaj notatkę" jest widoczne bez hovera dla zadania bez notatki (POPRAWKA 6)', () => {
+    render(
+      <TaskCard
+        task={makeTask()}
+        category={category}
+        onToggle={vi.fn()}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onUpdateNote={vi.fn()}
+      />,
+    );
+    const addNote = screen.getByRole('button', {
+      name: /Dodaj notatkę do zadania/,
+    });
+    expect(addNote).toBeInTheDocument();
+    // Regresja hover-only: klasa opacity-0 ukrywała przycisk dopóki nie najechano.
+    expect(addNote).not.toHaveClass('opacity-0');
+  });
+
   it('inline edycja notatki: zapis wywołuje onUpdateNote z nowym description (POPRAWKA 5)', async () => {
     const user = userEvent.setup();
     const onUpdateNote = vi.fn();
@@ -143,6 +162,43 @@ describe('TaskCard', () => {
     await user.click(screen.getByRole('button', { name: 'Zapisz' }));
 
     expect(onUpdateNote).toHaveBeenCalledWith('t1', 'Nowa notatka');
+  });
+
+  it('wyczyszczenie notatki zapisuje pustą description i wraca do „Dodaj notatkę" (POPRAWKA 6)', async () => {
+    const user = userEvent.setup();
+    const onUpdateNote = vi.fn();
+    const { rerender } = render(
+      <TaskCard
+        task={makeTask({ description: 'Stara notatka' })}
+        category={category}
+        onToggle={vi.fn()}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onUpdateNote={onUpdateNote}
+      />,
+    );
+
+    await user.click(
+      screen.getByRole('button', { name: /Edytuj notatkę zadania/ }),
+    );
+    await user.clear(screen.getByRole('textbox', { name: /Notatka zadania/ }));
+    await user.click(screen.getByRole('button', { name: 'Zapisz' }));
+    expect(onUpdateNote).toHaveBeenCalledWith('t1', '');
+
+    // Symulacja zapisu w stanie: pusta description → przycisk „Dodaj notatkę".
+    rerender(
+      <TaskCard
+        task={makeTask({ description: '' })}
+        category={category}
+        onToggle={vi.fn()}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onUpdateNote={onUpdateNote}
+      />,
+    );
+    expect(
+      screen.getByRole('button', { name: /Dodaj notatkę do zadania/ }),
+    ).toBeInTheDocument();
   });
 
   it('klik notatki do edycji NIE wywołuje onEdit (stopPropagation — pełna edycja osobno)', async () => {
