@@ -1,7 +1,6 @@
 import { lazy, Suspense, useMemo, useState } from 'react';
 import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
-import { AppShell } from '@/components/AppShell';
 import { SearchBar } from '@/components/SearchBar';
 import { CategoryPills } from '@/components/CategoryPills';
 import { StatusTabs } from '@/components/StatusTabs';
@@ -98,7 +97,7 @@ export function TasksPage() {
   }
 
   return (
-    <AppShell>
+    <>
       <div className="mx-auto max-w-3xl px-4 py-6 md:px-8 md:py-8">
         <div className="mb-6 flex items-center justify-between gap-3">
           <h1 className="text-xl font-semibold">Lista zadań</h1>
@@ -169,6 +168,6 @@ export function TasksPage() {
           />
         </Suspense>
       ) : null}
-    </AppShell>
+    </>
   );
 }
