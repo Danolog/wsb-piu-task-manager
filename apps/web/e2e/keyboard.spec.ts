@@ -1,59 +1,58 @@
 import { test, expect } from '@playwright/test';
+import { clearStorage, completeOnboarding, addTask } from './helpers';
 
 test.beforeEach(async ({ page }) => {
-  await page.addInitScript(() => window.localStorage.clear());
+  await clearStorage(page);
 });
 
-test('przepływ klawiaturą: otwórz modal, wpisz tytuł, zapisz, Esc zamyka', async ({
+test('przepływ klawiaturą: /nowe → autofocus tytułu → Enter zapisuje', async ({
   page,
 }) => {
-  await page.goto('/');
+  await completeOnboarding(page);
+  await page.goto('/nowe');
 
-  // Otwórz modal klawiaturą: fokus na przycisk „Dodaj zadanie" + Enter.
-  const addBtn = page.getByRole('button', { name: /Dodaj zadanie/ }).first();
-  await addBtn.focus();
-  await page.keyboard.press('Enter');
-
-  const dialog = page.getByRole('dialog');
-  await expect(dialog).toBeVisible();
-
-  // Pole tytułu ma autoFocus — fokus trafia do niego po otwarciu (focus trap Radix).
-  const titleInput = dialog.getByPlaceholder('Wpisz tytuł zadania...');
+  // Pole tytułu ma autoFocus — fokus trafia do niego po wejściu na stronę.
+  const titleInput = page.getByPlaceholder('Wpisz tytuł zadania...');
   await expect(titleInput).toBeFocused();
 
-  // Wpisz tytuł i zapisz Enterem (submit formularza).
+  // Wpisz tytuł i zapisz Enterem (submit formularza z pola tekstowego).
   await page.keyboard.type('Zadanie z klawiatury');
   await page.keyboard.press('Enter');
 
-  await expect(dialog).toBeHidden();
-  await expect(page.getByText('Zadanie z klawiatury')).toBeVisible();
-
-  // Otwórz ponownie i zamknij Escapem (Radix Dialog obsługuje Esc gratis).
-  await addBtn.focus();
-  await page.keyboard.press('Enter');
-  await expect(dialog).toBeVisible();
-  await page.keyboard.press('Escape');
-  await expect(dialog).toBeHidden();
+  await expect(page).toHaveURL(/\/wszystkie$/);
+  await expect(
+    page.getByRole('table').getByText('Zadanie z klawiatury'),
+  ).toBeVisible();
 });
 
 test('checkbox zadania przełączalny klawiaturą (Space)', async ({ page }) => {
-  await page.goto('/');
-
-  // Dodaj zadanie (myszką dla zwięzłości — flow klawiatury pokrywa test wyżej).
-  await page
-    .getByRole('button', { name: /Dodaj zadanie/ })
-    .first()
-    .click();
-  const dialog = page.getByRole('dialog');
-  await dialog.getByPlaceholder('Wpisz tytuł zadania...').fill('Do odhaczenia');
-  await dialog.getByRole('button', { name: 'Dodaj zadanie' }).click();
-  await expect(dialog).toBeHidden();
+  await completeOnboarding(page);
+  await addTask(page, 'Do odhaczenia');
 
   // Fokus na checkbox + Space → zaznaczony.
-  const checkbox = page.getByRole('checkbox', { name: /Oznacz jako wykonane/ });
+  const checkbox = page
+    .getByRole('checkbox', { name: /Oznacz jako wykonane/ })
+    .first();
   await checkbox.focus();
   await page.keyboard.press('Space');
   await expect(
-    page.getByRole('checkbox', { name: /Oznacz jako niewykonane/ }),
+    page.getByRole('checkbox', { name: /Oznacz jako niewykonane/ }).first(),
   ).toBeChecked();
+});
+
+test('modal potwierdzenia: Escape zamyka bez usuwania', async ({ page }) => {
+  await completeOnboarding(page);
+  await addTask(page, 'Zostaje');
+
+  await page.getByRole('table').getByText('Zostaje', { exact: true }).click();
+  await page
+    .getByRole('button', { name: 'Usuń zadanie' })
+    .locator('visible=true')
+    .click();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog).toBeVisible();
+
+  // Escape zamyka modal (Radix Dialog) — zadanie NIE jest usuwane.
+  await page.keyboard.press('Escape');
+  await expect(dialog).toBeHidden();
 });

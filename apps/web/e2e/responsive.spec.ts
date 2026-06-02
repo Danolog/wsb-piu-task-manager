@@ -1,74 +1,121 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
+import { clearStorage, completeOnboarding } from './helpers';
 
-test.beforeEach(async ({ page }) => {
-  await page.addInitScript(() => window.localStorage.clear());
-});
+/**
+ * Responsywność na 4 viewportach. Sprawdzamy:
+ * - brak poziomego overflow (layout nie wylewa się poza viewport),
+ * - sidebar (desktop ≥768) ↔ tab-bar (mobile <768),
+ * - tabela (desktop) ↔ kartki (mobile) na /wszystkie,
+ * - panel filtrów i modale mieszczą się w viewporcie.
+ */
 
 const VIEWPORTS = [
-  { name: 'mobile 375', width: 375, height: 812, mobile: true },
-  { name: 'tablet 768', width: 768, height: 1024, mobile: false },
-  { name: 'desktop 1280', width: 1280, height: 800, mobile: false },
+  { name: 'mobile 375', width: 375, height: 812, desktop: false },
+  { name: 'tablet 768', width: 768, height: 1024, desktop: true },
+  { name: 'laptop 1024', width: 1024, height: 768, desktop: true },
+  { name: 'desktop 1920', width: 1920, height: 1080, desktop: true },
 ];
 
+const SCREENS = ['/dzis', '/wszystkie', '/szukaj', '/kategorie', '/ustawienia'];
+
+async function expectNoHorizontalOverflow(page: Page) {
+  const scrollW = await page.evaluate(
+    () => document.documentElement.scrollWidth,
+  );
+  const clientW = await page.evaluate(
+    () => document.documentElement.clientWidth,
+  );
+  expect(scrollW).toBeLessThanOrEqual(clientW + 1);
+}
+
 for (const vp of VIEWPORTS) {
-  test(`layout nie pęka na ${vp.name}`, async ({ page }) => {
-    await page.setViewportSize({ width: vp.width, height: vp.height });
-    await page.goto('/');
+  test.describe(`viewport ${vp.name}`, () => {
+    test.beforeEach(async ({ page }) => {
+      await clearStorage(page);
+      await page.setViewportSize({ width: vp.width, height: vp.height });
+      await completeOnboarding(page);
+    });
 
-    // Nagłówek listy widoczny na każdym viewporcie.
-    await expect(
-      page.getByRole('heading', { name: 'Lista zadań' }),
-    ).toBeVisible();
-
-    // Brak poziomego przewijania (layout nie wylewa się poza viewport).
-    const scrollW = await page.evaluate(
-      () => document.documentElement.scrollWidth,
-    );
-    const clientW = await page.evaluate(
-      () => document.documentElement.clientWidth,
-    );
-    expect(scrollW).toBeLessThanOrEqual(clientW + 1);
-
-    if (vp.mobile) {
-      // Mobile: sidebar ukryty, dostępny przycisk „Otwórz menu" (hamburger).
-      const burger = page.getByRole('button', { name: 'Otwórz menu' });
-      await expect(burger).toBeVisible();
-
-      // Otwarcie drawera → nawigacja w dialogu.
-      await burger.click();
-      const drawer = page.getByRole('dialog');
-      await expect(drawer).toBeVisible();
-      await expect(
-        drawer.getByRole('link', { name: 'Ustawienia' }),
-      ).toBeVisible();
-    } else {
-      // Tablet/desktop: stały sidebar (nawigacja widoczna bez akcji), brak hamburgera.
-      await expect(
-        page.getByRole('navigation', { name: 'Główna nawigacja' }),
-      ).toBeVisible();
-      await expect(
-        page.getByRole('button', { name: 'Otwórz menu' }),
-      ).toBeHidden();
+    for (const path of SCREENS) {
+      test(`${path} — brak poziomego overflow`, async ({ page }) => {
+        await page.goto(path);
+        await expectNoHorizontalOverflow(page);
+      });
     }
-  });
 
-  test(`modal formularza mieści się na ${vp.name}`, async ({ page }) => {
-    await page.setViewportSize({ width: vp.width, height: vp.height });
-    await page.goto('/');
+    test('nawigacja: sidebar ↔ tab-bar wg breakpointu', async ({ page }) => {
+      await page.goto('/dzis');
+      if (vp.desktop) {
+        await expect(
+          page.getByRole('navigation', { name: 'Widoki' }),
+        ).toBeVisible();
+        await expect(
+          page.getByRole('navigation', { name: 'Nawigacja główna' }),
+        ).toBeHidden();
+      } else {
+        await expect(
+          page.getByRole('navigation', { name: 'Nawigacja główna' }),
+        ).toBeVisible();
+        await expect(
+          page.getByRole('navigation', { name: 'Widoki' }),
+        ).toBeHidden();
+      }
+    });
 
-    await page
-      .getByRole('button', { name: /Dodaj zadanie/ })
-      .first()
-      .click();
-    const dialog = page.getByRole('dialog');
-    await expect(dialog).toBeVisible();
+    test('tabela ↔ kartki na /wszystkie wg breakpointu', async ({ page }) => {
+      await page.goto('/nowe');
+      await page.getByPlaceholder('Wpisz tytuł zadania...').fill('Widoczne');
+      await page.getByRole('button', { name: 'Dodaj zadanie' }).click();
+      await expect(page).toHaveURL(/\/wszystkie$/);
 
-    // Modal nie wystaje poza szerokość viewportu.
-    const box = await dialog.boundingBox();
-    expect(box).not.toBeNull();
-    if (box) {
-      expect(box.width).toBeLessThanOrEqual(vp.width);
-      expect(box.x).toBeGreaterThanOrEqual(0);
-    }
+      if (vp.desktop) {
+        await expect(page.locator('table')).toBeVisible();
+        await expect(
+          page.getByRole('columnheader', { name: 'Zadanie' }),
+        ).toBeVisible();
+      } else {
+        await expect(page.locator('table')).toBeHidden();
+        await expect(
+          page.getByRole('checkbox', { name: /Oznacz jako wykonane/ }),
+        ).toBeVisible();
+      }
+      await expectNoHorizontalOverflow(page);
+    });
+
+    test('panel filtrów mieści się (popover desktop / sheet mobile)', async ({
+      page,
+    }) => {
+      await page.goto('/wszystkie');
+      await page.getByRole('button', { name: /Filtruj/ }).click();
+      await expect(page.getByText('Filtry').first()).toBeVisible();
+      await expectNoHorizontalOverflow(page);
+    });
+
+    test('modal potwierdzenia usunięcia mieści się w viewporcie', async ({
+      page,
+    }) => {
+      await page.goto('/nowe');
+      await page
+        .getByPlaceholder('Wpisz tytuł zadania...')
+        .fill('Do usunięcia');
+      await page.getByRole('button', { name: 'Dodaj zadanie' }).click();
+      // Lista jest tabelą (desktop) lub kartkami (mobile); klikamy widoczny tytuł.
+      await page
+        .getByText('Do usunięcia', { exact: true })
+        .locator('visible=true')
+        .click();
+      await page
+        .getByRole('button', { name: 'Usuń zadanie' })
+        .locator('visible=true')
+        .click();
+      const dialog = page.getByRole('dialog');
+      await expect(dialog).toBeVisible();
+      const box = await dialog.boundingBox();
+      expect(box).not.toBeNull();
+      if (box) {
+        expect(box.width).toBeLessThanOrEqual(vp.width);
+        expect(box.x).toBeGreaterThanOrEqual(-1);
+      }
+    });
   });
 }

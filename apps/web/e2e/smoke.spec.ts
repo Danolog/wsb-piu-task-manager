@@ -1,10 +1,19 @@
 import { test, expect } from '@playwright/test';
+import { clearStorage, completeOnboarding } from './helpers';
 
-// Smoke: aplikacja startuje i pokazuje listę zadań.
-// Pełny happy-path (dodaj → wykonaj → usuń) dochodzi w paczce P9.
-test('strona główna renderuje nagłówek listy zadań', async ({ page }) => {
+test.beforeEach(async ({ page }) => {
+  await clearStorage(page);
+});
+
+// Smoke: czysty start kieruje na onboarding, a po podaniu imienia ląduje na kokpicie.
+test('czysty start → onboarding → kokpit Dziś', async ({ page }) => {
   await page.goto('/');
+  // Bramka RequireOnboarding: brak imienia → /onboarding.
+  await expect(page).toHaveURL(/\/onboarding$/);
+
+  await completeOnboarding(page, 'Smoke');
+  await expect(page).toHaveURL(/\/dzis$/);
   await expect(
-    page.getByRole('heading', { name: 'Lista zadań' }),
+    page.getByRole('heading', { name: /Cześć, Smoke/ }),
   ).toBeVisible();
 });
