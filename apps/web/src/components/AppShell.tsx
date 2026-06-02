@@ -7,6 +7,7 @@ import {
   List,
   Search,
   User,
+  Settings,
   type LucideIcon,
 } from 'lucide-react';
 import { useAppState } from '@/app/app-context';
@@ -189,14 +190,30 @@ function Sidebar() {
         </div>
       ) : null}
 
-      <div className="mt-auto flex items-center gap-3 rounded-[var(--radius-field)] border border-line bg-surface-alt px-3 py-2.5">
+      {/* Karta usera = wejście do Ustawień na desktopie (spójnie z Figmą D 20:2 —
+          karta „Kasia" jest klikalna i prowadzi do /ustawienia). Mobile dociera
+          do Ustawień przez tab-bar „Ja". Nazwa dostępna linku zawiera widoczne
+          imię + serię (WCAG 2.5.3 label-in-name); ikona koła zębatego sygnalizuje
+          cel wizualnie. */}
+      <NavLink
+        to="/ustawienia"
+        className={({ isActive }) =>
+          cn(
+            'group/user mt-auto flex items-center gap-3 rounded-[var(--radius-field)] border border-line px-3 py-2.5 transition-colors',
+            'focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none',
+            isActive
+              ? 'border-ring bg-surface-alt'
+              : 'bg-surface-alt hover:bg-surface',
+          )
+        }
+      >
         <span
           className="flex size-8 shrink-0 items-center justify-center rounded-full bg-cta font-handwriting text-lg text-cta-foreground"
           aria-hidden="true"
         >
           {userInitial}
         </span>
-        <span className="min-w-0">
+        <span className="min-w-0 flex-1">
           <span className="block truncate text-sm font-medium text-ink">
             {state.user.name || 'Gość'}
           </span>
@@ -204,7 +221,12 @@ function Sidebar() {
             seria {streak} {streak === 1 ? 'dzień' : 'dni'}
           </span>
         </span>
-      </div>
+        <Settings
+          className="size-4 shrink-0 text-ink-muted transition-colors group-hover/user:text-ink"
+          aria-hidden="true"
+        />
+        <span className="sr-only">Ustawienia</span>
+      </NavLink>
     </aside>
   );
 }

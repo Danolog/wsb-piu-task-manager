@@ -47,6 +47,7 @@ function TestApp() {
         <Route index element={<Navigate to="/dzis" replace />} />
         <Route path="dzis" element={<h1>Kokpit Dziś</h1>} />
         <Route path="wszystkie" element={<h1>Wszystkie</h1>} />
+        <Route path="ustawienia" element={<h1>Ekran Ustawień</h1>} />
       </Route>
       <Route path="*" element={<h1>404</h1>} />
     </Routes>
@@ -161,6 +162,34 @@ describe('AppShell — nawigacja i liczniki', () => {
     expect(within(tabbar).getByText('Lista')).toBeInTheDocument();
     expect(within(tabbar).getByText('Szukaj')).toBeInTheDocument();
     expect(within(tabbar).getByText('Ja')).toBeInTheDocument();
+  });
+
+  it('desktop: karta usera jest linkiem do Ustawień (POPRAWKA 1)', async () => {
+    const user = userEvent.setup();
+    withUserAndTasks();
+    renderApp('/dzis');
+
+    // Karta usera = link z dostępną nazwą zawierającą imię i pozycję „Ustawienia".
+    const settingsLink = screen.getByRole('link', { name: /Ustawienia/ });
+    expect(settingsLink).toBeInTheDocument();
+    expect(settingsLink).toHaveTextContent('Kasia');
+
+    await user.click(settingsLink);
+    expect(screen.getByText('Ekran Ustawień')).toBeInTheDocument();
+    expect(screen.getByTestId('path')).toHaveTextContent('/ustawienia');
+  });
+
+  it('mobile: tab-bar „Ja" prowadzi do Ustawień (potwierdzenie obu ścieżek)', async () => {
+    const user = userEvent.setup();
+    withUserAndTasks();
+    renderApp('/dzis');
+
+    const tabbar = screen.getByRole('navigation', {
+      name: 'Nawigacja główna',
+    });
+    await user.click(within(tabbar).getByRole('link', { name: 'Ja' }));
+    expect(screen.getByText('Ekran Ustawień')).toBeInTheDocument();
+    expect(screen.getByTestId('path')).toHaveTextContent('/ustawienia');
   });
 
   it('404 dla nieznanej trasy (z ustawionym imieniem)', () => {

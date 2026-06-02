@@ -34,6 +34,19 @@ test('desktop: sidebar (Widoki) — aktywny stan i przejścia', async ({
   await expect(page).toHaveURL(/\/zrobione$/);
 });
 
+test('desktop: karta usera w sidebarze prowadzi do Ustawień', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await completeOnboarding(page);
+
+  // Karta usera (link „Ustawienia”) na dole sidebara — jedyna droga do Ustawień
+  // na desktopie (tab-bar „Ja” jest ukryty ≥ md).
+  await page.getByRole('link', { name: /Ustawienia/ }).click();
+  await expect(page).toHaveURL(/\/ustawienia$/);
+  await expect(page.getByRole('heading', { name: 'Ustawienia' })).toBeVisible();
+});
+
 test('mobile: tab-bar (Dziś/Lista/Szukaj/Ja) — aktywny stan i przejścia', async ({
   page,
 }) => {
