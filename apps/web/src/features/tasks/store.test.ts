@@ -1,7 +1,13 @@
 import { describe, it, expect } from 'vitest';
-import { rootReducer, selectVisibleTasks, defaultViewFilters } from './store';
+import {
+  rootReducer,
+  selectVisibleTasks,
+  selectStreak,
+  selectTodayProgress,
+  defaultViewFilters,
+} from './store';
 import { seedState } from './storage';
-import type { AppState, TaskInput } from './model';
+import type { AppState, Task, TaskInput } from './model';
 
 function makeInput(overrides: Partial<TaskInput> = {}): TaskInput {
   return {
@@ -177,5 +183,234 @@ describe('selectVisibleTasks', () => {
       search: 'nieistniejące-zapytanie',
     });
     expect(result).toEqual([]);
+  });
+});
+
+// Wstawia gotowe zadania do stanu z determinowanymi polami (omija now() reducera).
+function withTasks(tasks: Task[]): AppState {
+  const state = seedState();
+  const map: Record<string, Task> = {};
+  for (const task of tasks) map[task.id] = task;
+  return { ...state, tasks: map };
+}
+
+function task(overrides: Partial<Task> & Pick<Task, 'id'>): Task {
+  return {
+    title: 'X',
+    status: 'todo',
+    priority: 'medium',
+    createdAt: '2026-06-01T09:00:00.000Z',
+    updatedAt: '2026-06-01T09:00:00.000Z',
+    ...overrides,
+  };
+}
+
+// Lokalny timestamp w południe danego dnia — bez „Z", więc bez przesunięcia strefowego dnia.
+function completedOn(day: string): string {
+  return `${day}T12:00:00`;
+}
+
+describe('rootReducer — user/setName', () => {
+  it('ustawia imię usera', () => {
+    const next = rootReducer(seedState(), {
+      type: 'user/setName',
+      payload: { name: 'Kasia' },
+    });
+    expect(next.user.name).toBe('Kasia');
+  });
+
+  it('nadpisuje istniejące imię', () => {
+    let state = rootReducer(seedState(), {
+      type: 'user/setName',
+      payload: { name: 'Kasia' },
+    });
+    state = rootReducer(state, {
+      type: 'user/setName',
+      payload: { name: 'Marek' },
+    });
+    expect(state.user.name).toBe('Marek');
+  });
+});
+
+describe('selectStreak', () => {
+  const today = '2026-06-02';
+
+  it('liczy serię kolejnych dni wstecz z ukończeniem', () => {
+    const state = withTasks([
+      task({
+        id: 'a',
+        status: 'done',
+        completedAt: completedOn('2026-06-02'),
+      }),
+      task({
+        id: 'b',
+        status: 'done',
+        completedAt: completedOn('2026-06-01'),
+      }),
+      task({
+        id: 'c',
+        status: 'done',
+        completedAt: completedOn('2026-05-31'),
+      }),
+    ]);
+    expect(selectStreak(state, today)).toBe(3);
+  });
+
+  it('przerywa serię na pierwszym dniu bez ukończenia (luka)', () => {
+    const state = withTasks([
+      task({
+        id: 'a',
+        status: 'done',
+        completedAt: completedOn('2026-06-02'),
+      }),
+      // brak 2026-06-01 → seria = 1
+      task({
+        id: 'c',
+        status: 'done',
+        completedAt: completedOn('2026-05-31'),
+      }),
+    ]);
+    expect(selectStreak(state, today)).toBe(1);
+  });
+
+  it('zwraca 0, gdy dziś nic nie ukończono (mimo wczorajszego)', () => {
+    const state = withTasks([
+      task({
+        id: 'b',
+        status: 'done',
+        completedAt: completedOn('2026-06-01'),
+      }),
+    ]);
+    expect(selectStreak(state, today)).toBe(0);
+  });
+
+  it('zwraca 0 dla pustego stanu i ignoruje zadania bez completedAt', () => {
+    expect(selectStreak(seedState(), today)).toBe(0);
+    const state = withTasks([task({ id: 'a', status: 'todo' })]);
+    expect(selectStreak(state, today)).toBe(0);
+  });
+
+  it('liczy wiele ukończeń tego samego dnia jako jeden dzień serii', () => {
+    const state = withTasks([
+      task({
+        id: 'a',
+        status: 'done',
+        completedAt: completedOn('2026-06-02'),
+      }),
+      task({
+        id: 'b',
+        status: 'done',
+        completedAt: completedOn('2026-06-02'),
+      }),
+    ]);
+    expect(selectStreak(state, today)).toBe(1);
+  });
+});
+
+describe('selectTodayProgress', () => {
+  const today = '2026-06-02';
+
+  it('liczy ukończone vs wszystkie zadania z dueDate === dziś', () => {
+    const state = withTasks([
+      task({ id: 'a', dueDate: today, status: 'done' }),
+      task({ id: 'b', dueDate: today, status: 'todo' }),
+      task({ id: 'c', dueDate: today, status: 'todo' }),
+      // inny dzień — nie liczy się
+      task({ id: 'd', dueDate: '2026-06-03', status: 'done' }),
+      // bez daty — nie liczy się
+      task({ id: 'e', status: 'done' }),
+    ]);
+    expect(selectTodayProgress(state, today)).toEqual({
+      done: 1,
+      total: 3,
+      pct: 33,
+    });
+  });
+
+  it('zwraca zera, gdy brak zadań na dziś (bez dzielenia przez 0)', () => {
+    const state = withTasks([
+      task({ id: 'a', dueDate: '2026-06-05', status: 'todo' }),
+    ]);
+    expect(selectTodayProgress(state, today)).toEqual({
+      done: 0,
+      total: 0,
+      pct: 0,
+    });
+  });
+
+  it('100% gdy wszystkie dzisiejsze ukończone', () => {
+    const state = withTasks([
+      task({ id: 'a', dueDate: today, status: 'done' }),
+      task({ id: 'b', dueDate: today, status: 'done' }),
+    ]);
+    expect(selectTodayProgress(state, today)).toEqual({
+      done: 2,
+      total: 2,
+      pct: 100,
+    });
+  });
+});
+
+describe('selectVisibleTasks — datePreset', () => {
+  // środa 2026-06-03; tydzień ISO pon–niedz = 2026-06-01 .. 2026-06-07
+  const today = '2026-06-03';
+
+  function fixture(): AppState {
+    return withTasks([
+      task({ id: 'today', title: 'Dziś', dueDate: '2026-06-03' }),
+      task({ id: 'mon', title: 'Poniedziałek', dueDate: '2026-06-01' }),
+      task({ id: 'sun', title: 'Niedziela', dueDate: '2026-06-07' }),
+      task({
+        id: 'nextweek',
+        title: 'Przyszły tydzień',
+        dueDate: '2026-06-08',
+      }),
+      task({ id: 'lastweek', title: 'Zeszły tydzień', dueDate: '2026-05-30' }),
+      task({ id: 'nodate', title: 'Bez daty' }),
+      task({ id: 'done', title: 'Zrobione', status: 'done' }),
+    ]);
+  }
+
+  it('today: tylko zadania z dueDate === dziś', () => {
+    const result = selectVisibleTasks(
+      fixture(),
+      { ...defaultViewFilters, datePreset: 'today' },
+      today,
+    );
+    expect(result.map((t) => t.title)).toEqual(['Dziś']);
+  });
+
+  it('week: zadania z bieżącego tygodnia ISO (pon–niedz), łapie zaległe z tego tygodnia', () => {
+    const result = selectVisibleTasks(
+      fixture(),
+      { ...defaultViewFilters, datePreset: 'week' },
+      today,
+    );
+    const titles = result.map((t) => t.title).sort();
+    expect(titles).toEqual(['Dziś', 'Niedziela', 'Poniedziałek']);
+    // poza tygodniem / bez daty odpadają
+    expect(titles).not.toContain('Przyszły tydzień');
+    expect(titles).not.toContain('Zeszły tydzień');
+    expect(titles).not.toContain('Bez daty');
+  });
+
+  it('done: tylko zadania o statusie done', () => {
+    const result = selectVisibleTasks(
+      fixture(),
+      { ...defaultViewFilters, datePreset: 'done' },
+      today,
+    );
+    expect(result.map((t) => t.title)).toEqual(['Zrobione']);
+  });
+
+  it('all / brak presetu: bez zawężania po dacie', () => {
+    const all = selectVisibleTasks(
+      fixture(),
+      { ...defaultViewFilters, datePreset: 'all' },
+      today,
+    );
+    const none = selectVisibleTasks(fixture(), defaultViewFilters, today);
+    expect(all).toHaveLength(7);
+    expect(none).toHaveLength(7);
   });
 });

@@ -1,4 +1,11 @@
 import { v4 as uuidv4 } from 'uuid';
+import {
+  startOfWeek,
+  endOfWeek,
+  parseISO,
+  isWithinInterval,
+  subDays,
+} from 'date-fns';
 import type {
   AppState,
   Status,
@@ -27,6 +34,7 @@ export type Action =
     }
   | { type: 'category/delete'; payload: { id: string } }
   | { type: 'ui/setTheme'; payload: { theme: Theme } }
+  | { type: 'user/setName'; payload: { name: string } }
   | { type: 'state/hydrate'; payload: AppState };
 
 function now(): string {
@@ -52,6 +60,7 @@ export function rootReducer(state: AppState, action: Action): AppState {
           description: input.description,
         }),
         ...(input.dueDate !== undefined && { dueDate: input.dueDate }),
+        ...(input.dueTime !== undefined && { dueTime: input.dueTime }),
         ...(input.categoryId !== undefined && { categoryId: input.categoryId }),
         ...(input.status === 'done' && { completedAt: timestamp }),
       };
@@ -149,6 +158,9 @@ export function rootReducer(state: AppState, action: Action): AppState {
     case 'ui/setTheme':
       return { ...state, ui: { ...state.ui, theme: action.payload.theme } };
 
+    case 'user/setName':
+      return { ...state, user: { ...state.user, name: action.payload.name } };
+
     case 'state/hydrate':
       return action.payload;
 
@@ -178,10 +190,15 @@ function assertNever(_action: never): never {
 
 // ---------- Selektor widoku (czysty, testowalny) ----------
 
+/** Preset zakresu dat nad listą (mapuje trasy /dzis /tydzien /zrobione /wszystkie). */
+export type DatePreset = 'today' | 'week' | 'done' | 'all';
+
 export interface ViewFilters {
   search: string;
   categoryId: string | 'all';
   status: Status | 'all';
+  /** Preset zakresu dat; gdy obecny, zawęża listę niezależnie od pozostałych filtrów. */
+  datePreset?: DatePreset;
   sortBy: 'createdAt' | 'dueDate' | 'priority';
   sortDir: 'asc' | 'desc';
 }
@@ -201,17 +218,61 @@ const PRIORITY_RANK: Record<Task['priority'], number> = {
   urgent: 3,
 };
 
+/** Domyślne „dzisiaj" w formacie YYYY-MM-DD (czas lokalny) — fallback dla selektorów. */
+function todayISODefault(): string {
+  const now = new Date();
+  const year = now.getFullYear().toString().padStart(4, '0');
+  const month = (now.getMonth() + 1).toString().padStart(2, '0');
+  const day = now.getDate().toString().padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+/**
+ * Sprawdza, czy zadanie pasuje do presetu zakresu dat.
+ * - today: dueDate === dziś (decyzja 11.2)
+ * - week: dueDate w bieżącym tygodniu ISO (pon–niedz), łapie też zaległe z tego tygodnia (11.3)
+ * - done: status === 'done'
+ * - all / brak: zawsze true
+ */
+function matchesDatePreset(
+  task: Task,
+  preset: DatePreset | undefined,
+  todayISO: string,
+): boolean {
+  switch (preset) {
+    case 'today':
+      return task.dueDate === todayISO;
+    case 'week': {
+      if (!task.dueDate) return false;
+      const today = parseISO(todayISO);
+      const start = startOfWeek(today, { weekStartsOn: 1 });
+      const end = endOfWeek(today, { weekStartsOn: 1 });
+      return isWithinInterval(parseISO(task.dueDate), { start, end });
+    }
+    case 'done':
+      return task.status === 'done';
+    case 'all':
+    case undefined:
+      return true;
+  }
+}
+
 /**
  * Zwraca zadania widoczne po zastosowaniu filtrów widoku (poza globalnym stanem).
  * Czysta funkcja — łatwa do testów jednostkowych.
+ * `todayISO` (YYYY-MM-DD) wstrzykiwany dla presetów today/week — domyślnie bieżący dzień.
  */
 export function selectVisibleTasks(
   state: AppState,
   filters: ViewFilters,
+  todayISO: string = todayISODefault(),
 ): Task[] {
   const query = filters.search.trim().toLowerCase();
 
   let result = Object.values(state.tasks).filter((task) => {
+    if (!matchesDatePreset(task, filters.datePreset, todayISO)) {
+      return false;
+    }
     if (filters.status !== 'all' && task.status !== filters.status) {
       return false;
     }
@@ -247,4 +308,70 @@ export function selectVisibleTasks(
   });
 
   return result;
+}
+
+// ---------- Selektory derived (czyste, bez nowych pól stanu) ----------
+
+/** Lokalna data (YYYY-MM-DD) z timestampu ISO — dzień wg strefy przeglądarki. */
+function localDayFromISO(iso: string): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return '';
+  return toLocalISO(date);
+}
+
+function toLocalISO(date: Date): string {
+  const year = date.getFullYear().toString().padStart(4, '0');
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const day = date.getDate().toString().padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+/**
+ * Seria (streak): liczba kolejnych dni wstecz od dziś, w których ukończono
+ * co najmniej 1 zadanie (po dacie `completedAt`). Pierwszy dzień bez ukończenia
+ * przerywa serię. Zadanie bez `completedAt` nie liczy się. Decyzja 11.5.
+ * Czysta funkcja — `todayISO` (YYYY-MM-DD) wstrzykiwany dla determinizmu.
+ */
+export function selectStreak(state: AppState, todayISO: string): number {
+  // Zbiór dni (YYYY-MM-DD), w których cokolwiek ukończono.
+  const completedDays = new Set<string>();
+  for (const task of Object.values(state.tasks)) {
+    if (task.completedAt) {
+      const day = localDayFromISO(task.completedAt);
+      if (day) completedDays.add(day);
+    }
+  }
+
+  let streak = 0;
+  let cursor = parseISO(todayISO);
+  // Idziemy w tył dzień po dniu, dopóki dzień ma ukończenie.
+  while (completedDays.has(toLocalISO(cursor))) {
+    streak += 1;
+    cursor = subDays(cursor, 1);
+  }
+  return streak;
+}
+
+export interface TodayProgress {
+  done: number;
+  total: number;
+  /** Procent ukończenia 0–100 (zaokrąglony); 0 gdy brak zadań na dziś. */
+  pct: number;
+}
+
+/**
+ * Postęp dnia: zadania z `dueDate === dziś`, ile ukończonych vs wszystkich.
+ * Decyzja 11.2 („Dziś" = dueDate === dzisiaj). Czysta funkcja.
+ */
+export function selectTodayProgress(
+  state: AppState,
+  todayISO: string,
+): TodayProgress {
+  const todays = Object.values(state.tasks).filter(
+    (task) => task.dueDate === todayISO,
+  );
+  const total = todays.length;
+  const done = todays.filter((task) => task.status === 'done').length;
+  const pct = total === 0 ? 0 : Math.round((done / total) * 100);
+  return { done, total, pct };
 }

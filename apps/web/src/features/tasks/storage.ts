@@ -28,7 +28,13 @@ export function seedState(): AppState {
         name: 'Zdrowie',
         color: 'category-red',
       },
+      'cat-finanse': {
+        id: 'cat-finanse',
+        name: 'Finanse',
+        color: 'category-teal',
+      },
     },
+    user: { name: '' },
     ui: { theme: 'system' },
   };
 }
@@ -41,11 +47,24 @@ export function migrate(raw: unknown): unknown {
   if (typeof raw !== 'object' || raw === null) {
     return raw;
   }
-  const data = raw as { schemaVersion?: number };
+  let data = raw as { schemaVersion?: number; [key: string]: unknown };
+
+  // Migracje stosowane łańcuchowo: każdy case podbija o jedną wersję wzwyż.
+  // v1 → v2: dokłada user:{name:''}, podbija schemaVersion; tasks/categories bez zmian.
+  if (data.schemaVersion === 1) {
+    data = {
+      ...data,
+      user:
+        typeof data.user === 'object' && data.user !== null
+          ? data.user
+          : { name: '' },
+      schemaVersion: 2,
+    };
+  }
+
   switch (data.schemaVersion) {
     case SCHEMA_VERSION:
       return data;
-    // case 0: ... (przyszłe migracje)
     default:
       // Nieznana/brakująca wersja — zwracamy jak jest, walidacja zdecyduje o fallbacku.
       return data;

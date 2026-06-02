@@ -54,3 +54,67 @@ describe('taskInputSchema', () => {
     expect(empty.dueDate).toBeUndefined();
   });
 });
+
+describe('taskInputSchema — dueTime (godzina)', () => {
+  const valid = { title: 'Zadanie', priority: 'medium' as const };
+
+  it('akceptuje poprawną godzinę razem z datą', () => {
+    const ok = taskInputSchema.parse({
+      ...valid,
+      dueDate: '2026-06-05',
+      dueTime: '18:00',
+    });
+    expect(ok.dueTime).toBe('18:00');
+  });
+
+  it('akceptuje skrajne godziny 00:00 i 23:59', () => {
+    expect(
+      taskInputSchema.safeParse({
+        ...valid,
+        dueDate: '2026-06-05',
+        dueTime: '00:00',
+      }).success,
+    ).toBe(true);
+    expect(
+      taskInputSchema.safeParse({
+        ...valid,
+        dueDate: '2026-06-05',
+        dueTime: '23:59',
+      }).success,
+    ).toBe(true);
+  });
+
+  it('traktuje pusty string godziny jako brak', () => {
+    const parsed = taskInputSchema.parse({
+      ...valid,
+      dueDate: '2026-06-05',
+      dueTime: '',
+    });
+    expect(parsed.dueTime).toBeUndefined();
+  });
+
+  it('odrzuca godzinę o złym formacie (24:00, 7:5, tekst)', () => {
+    for (const bad of ['24:00', '7:5', '7:05', '18.00', 'rano']) {
+      const result = taskInputSchema.safeParse({
+        ...valid,
+        dueDate: '2026-06-05',
+        dueTime: bad,
+      });
+      expect(result.success).toBe(false);
+    }
+  });
+
+  it('odrzuca godzinę BEZ daty (reguła „godzina tylko z datą")', () => {
+    const result = taskInputSchema.safeParse({
+      ...valid,
+      dueTime: '18:00',
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0]?.message).toBe(
+        'Godzinę można podać tylko razem z datą.',
+      );
+      expect(result.error.issues[0]?.path).toEqual(['dueTime']);
+    }
+  });
+});

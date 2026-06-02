@@ -20,18 +20,24 @@ export interface Task {
   status: Status;
   priority: Priority;
   dueDate?: string; // 'YYYY-MM-DD'
+  dueTime?: string; // 'HH:mm' (24h) — dozwolone tylko, gdy dueDate obecne
   categoryId?: Category['id'];
   createdAt: string; // ISO
   updatedAt: string; // ISO
   completedAt?: string; // ISO
 }
 
-export const SCHEMA_VERSION = 1 as const;
+export const SCHEMA_VERSION = 2 as const;
+
+export interface User {
+  name: string; // '' przed onboardingiem
+}
 
 export interface AppState {
   schemaVersion: typeof SCHEMA_VERSION;
   tasks: Record<TaskId, Task>;
   categories: Record<string, Category>;
+  user: User;
   ui: { theme: Theme };
 }
 
@@ -70,36 +76,53 @@ function toISODate(date: Date): string {
   return `${year}-${month}-${day}`;
 }
 
+// Godzina w formacie 24h HH:mm (00:00–23:59).
+const dueTimeSchema = z
+  .string()
+  .regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Godzina musi być w formacie GG:MM.');
+
 /**
  * Schemat danych wpisywanych przez użytkownika w formularzu zadania.
  * Spina się z react-hook-form przez @hookform/resolvers/zod.
  * Puste pola opcjonalne traktujemy jako "brak" (undefined), nie pusty string.
  */
-export const taskInputSchema = z.object({
-  title: z
-    .string()
-    .trim()
-    .min(1, 'Proszę wpisać nazwę zadania.')
-    .max(TITLE_MAX, `Nazwa może mieć maksymalnie ${TITLE_MAX} znaków.`),
-  description: z
-    .string()
-    .trim()
-    .max(
-      DESCRIPTION_MAX,
-      `Opis może mieć maksymalnie ${DESCRIPTION_MAX} znaków.`,
-    )
-    .optional()
-    .or(z.literal('').transform(() => undefined)),
-  priority: prioritySchema,
-  status: statusSchema.default('todo'),
-  dueDate: dueDateSchema
-    .optional()
-    .or(z.literal('').transform(() => undefined)),
-  categoryId: z
-    .string()
-    .optional()
-    .or(z.literal('').transform(() => undefined)),
-});
+export const taskInputSchema = z
+  .object({
+    title: z
+      .string()
+      .trim()
+      .min(1, 'Proszę wpisać nazwę zadania.')
+      .max(TITLE_MAX, `Nazwa może mieć maksymalnie ${TITLE_MAX} znaków.`),
+    description: z
+      .string()
+      .trim()
+      .max(
+        DESCRIPTION_MAX,
+        `Opis może mieć maksymalnie ${DESCRIPTION_MAX} znaków.`,
+      )
+      .optional()
+      .or(z.literal('').transform(() => undefined)),
+    priority: prioritySchema,
+    status: statusSchema.default('todo'),
+    dueDate: dueDateSchema
+      .optional()
+      .or(z.literal('').transform(() => undefined)),
+    dueTime: dueTimeSchema
+      .optional()
+      .or(z.literal('').transform(() => undefined)),
+    categoryId: z
+      .string()
+      .optional()
+      .or(z.literal('').transform(() => undefined)),
+  })
+  // Godzina ma sens tylko z datą — sama godzina bez terminu jest błędem.
+  .refine(
+    (data) => !(data.dueTime !== undefined && data.dueDate === undefined),
+    {
+      message: 'Godzinę można podać tylko razem z datą.',
+      path: ['dueTime'],
+    },
+  );
 
 export type TaskInput = z.infer<typeof taskInputSchema>;
 
@@ -116,16 +139,20 @@ const taskSchema = z.object({
   status: statusSchema,
   priority: prioritySchema,
   dueDate: z.string().optional(),
+  dueTime: z.string().optional(),
   categoryId: z.string().optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
   completedAt: z.string().optional(),
 });
 
+const userSchema = z.object({ name: z.string() });
+
 /** Schemat całego stanu w localStorage — walidacja po odczycie. */
 export const appStateSchema = z.object({
-  schemaVersion: z.literal(SCHEMA_VERSION),
+  schemaVersion: z.literal(2),
   tasks: z.record(z.string(), taskSchema),
   categories: z.record(z.string(), categorySchema),
+  user: userSchema,
   ui: z.object({ theme: themeSchema }),
 });

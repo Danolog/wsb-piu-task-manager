@@ -28,6 +28,7 @@
   --category-purple: #6a4f8a;
   --category-orange: #b5722e;
   --category-red: #b23a2e;
+  --category-teal: #3a7f8a;
 
   /* --- Promienie (Figma) --- */
   --radius-field: 11px;
@@ -77,6 +78,7 @@
   --category-purple: #b095d6;
   --category-orange: #e0a25f;
   --category-red: #e07567;
+  --category-teal: #5fb0bd;
 }
 
 @theme inline {
@@ -97,6 +99,7 @@
   --color-category-purple: var(--category-purple);
   --color-category-orange: var(--category-orange);
   --color-category-red: var(--category-red);
+  --color-category-teal: var(--category-teal);
 
   /* Mapowanie zmiennych shadcn na utility kolory */
   --color-background: var(--background);
