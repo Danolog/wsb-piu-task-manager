@@ -5,6 +5,7 @@ import '@fontsource/inter/500.css';
 import '@fontsource/inter/600.css';
 import '@/styles/globals.css';
 import { App } from '@/App';
+import { AppProvider } from '@/app/AppProvider';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -13,6 +14,8 @@ if (!rootElement) {
 
 createRoot(rootElement).render(
   <StrictMode>
-    <App />
+    <AppProvider>
+      <App />
+    </AppProvider>
   </StrictMode>,
 );
