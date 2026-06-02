@@ -71,6 +71,18 @@
 
   - **SEO 82 → 100.** Naprawione: brak `<meta name="description">` (dodany w `index.html`) + nieprawidłowy robots.txt (SPA serwowała HTML zamiast pliku — dodany `public/robots.txt`).
   - **Performance 86 (poniżej 90).** Uczciwie: ciągnie w dół **tylko FCP 2.4s (score 69) i LCP 3.7s (score 57)** — pojedynczy bundle wejściowy + ładowanie fontów na zimnym preview. Reszta wzorowa: TBT 40ms (100), CLS 0.001 (100), Speed Index 2.4s (98). Domknięcie do 90+ wymaga preload fontów / dalszego code-splittingu wejściowego chunku — osobne zadanie optymalizacyjne (ryzyko regresji na działającym buildzie), **nie robione w tej turze QA**. Pomiar lokalny waha się ±1–2 pkt między przebiegami.
+
+### Przebieg optymalizacji Performance „P9" (2026-06-02) — wynik: bez poprawy, zmiany cofnięte
+
+> Osobny, celowany przebieg pod podniesienie Performance do 90+ *bez* regresji wizualnej i bez psucia testów. **Wniosek: żadna z bezpiecznych technik nie podniosła wyniku na tej maszynie — wynik jest zdominowany przez czas wykonania JS (render React) pod throttlingiem CPU, nie przez fonty. Wszystkie zmiany cofnięto, repo zostaje w stanie baseline (Performance 86).**
+
+- **Metoda:** preset *mobile* Lighthouse (odtwarza warunki z briefu: 4x throttling CPU + wolna sieć), build → `vite preview` na `:4173` → Lighthouse. Pojedyncze przebiegi okazały się mocno zaszumione (Performance skakał 84–94 między przebiegami) → porównania robione na **medianie z 7 przebiegów** w identycznych warunkach.
+- **Co testowano (i z jakim skutkiem):**
+  - **Subset fontów latin/latin-ext + usunięcie nieużywanego Space Mono** (token `--font-mono` nie jest renderowany przez żaden komponent). Poprawiło FCP (2.4→2.1s), ale **pogorszyło LCP** (3.72→4.0s) — per-wagowe rozbicie na osobne pliki latin/latin-ext dokłada pobranie pliku latin-ext (polskie znaki ą/ę/ł) na ścieżce do elementu LCP. Mediana 7 przebiegów: **85** (baseline **86**). Netto -1.
+  - **Preload krytycznych woff2 Inter 400 + modulepreload chunku trasy startowej** (plugin Vite wstrzykujący realne, zhashowane nazwy do `index.html`). Ustabilizowało FCP/TBT, ale **nie ruszyło LCP** — potwierdza, że LCP nie czeka na font.
+  - **`manualChunks` (vendor React/router osobno) + eager-import trasy `/`.** LCP lekko w dół (~3.2s w dobrych przebiegach), ale TBT w górę (40→130 ms) i większa wariancja FCP. Netto bez zysku w score.
+- **Diagnoza LCP (Lighthouse 13 „lcp-breakdown-insight”):** element LCP = `<p>` pustego stanu „Nie masz jeszcze żadnych zadań…”; TTFB ~8 ms, *render delay* ~480 ms. Dominującym kosztem jest dojście do wyrenderowania drzewa React na throttlowanym CPU (pusty `#root` → cała treść renderuje się dopiero po wykonaniu JS), a nie pobranie fontu czy chunku. **Domknięcie do 90+ wymagałoby prerenderingu/SSR treści startowej** — zmiana architektury poza zakresem „tylko sposób ładowania fontów”, z realnym ryzykiem regresji testów e2e i wyglądu, więc świadomie niewykonana.
+- **Stan po przebiegu:** working tree przywrócone do baseline (`main.tsx`, `vite.config.ts`, `router.tsx` bez zmian). Bramki nadal zielone: typecheck/lint/49 unit/16 e2e/build.
 - ⚠️ Bundle <200kb gzipped — **częściowo.** Po code-splittingu największy chunk wejściowy = **381kB / ~117kB gzip**; znika ostrzeżenie build o chunku >500kb. Cel „<200kb gzip" dla initial bundle **osiągnięty dla głównego chunku JS** (~117kB gzip). Pełny transfer trasy `/` (zmierzony Playwright network, surowo): ~567kB JS w 7 plikach → po gzip/brotli orientacyjnie ~170–190kB. Modal formularza (103kB, react-hook-form+zod+kalendarz) i Ustawienia (6kB) **nie ładują się na starcie** — dopiero przy otwarciu/wejściu na trasę.
 - ✅ CLS < 0.1 — **zmierzone Lighthouse: 0.001** (praktycznie zero skoków układu). Czcionki self-hosted (fontsource) + brak obrazów asynchronicznych.
 
@@ -109,6 +121,6 @@
 
 ## Do dokończenia przez właściciela
 
-1. **Performance 86 → 90+** (opcjonalne, jakość): preload fontów (`<link rel="preload">` na woff2 Inter) i/lub dalszy split wejściowego chunku — poprawia FCP/LCP. Osobne zadanie optymalizacyjne (nie QA).
+1. **Performance 86 → 90+** (opcjonalne, jakość): **próbowane w przebiegu „P9" 2026-06-02 — bezskutecznie** (subset fontów, preload woff2, modulepreload, vendor split, eager trasy — żadna nie podniosła mediany; szczegóły w sekcji Performance). Bottleneck to render React pod throttlingiem CPU (pusty `#root`, treść renderowana w pełni po JS), nie fonty. Realne domknięcie do 90+ wymaga **prerenderingu/SSR treści startowej** (np. prerender trasy `/` do statycznego HTML) — zmiana architektury, osobny projekt z własnym testem regresji wizualnej.
 2. (Opcjonalnie) dodać projekty `firefox`/`webkit` w `playwright.config.ts` + `npx playwright install firefox webkit`, by domknąć cross-browser.
 3. Manualny przebieg czytnikiem ekranu (NVDA na Windows) na flow: dodaj → oznacz → usuń.
