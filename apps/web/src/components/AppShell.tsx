@@ -170,7 +170,12 @@ function Sidebar() {
 
   return (
     <aside className="hidden border-r border-line bg-surface p-5 md:flex md:flex-col md:gap-6">
-      <span className="font-handwriting text-2xl text-ink">Task</span>
+      {/* Logo: „Task Manager" w foncie odręcznym (Caveat). Rozmiar dobrany tak, by
+          pełna nazwa mieściła się w szerokości sidebara (16rem − padding 1.25rem×2
+          ≈ 13.5rem) bez przycinania i bez zawijania — leading-none zbija interlinię. */}
+      <span className="font-handwriting text-[1.65rem] leading-none text-ink">
+        Task Manager
+      </span>
 
       <nav className="flex flex-col gap-1" aria-label="Widoki">
         <p className="px-3 pb-1 text-xs font-medium tracking-wide text-ink-muted uppercase">

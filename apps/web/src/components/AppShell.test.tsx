@@ -140,6 +140,12 @@ describe('AppShell — nawigacja i liczniki', () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   }
 
+  it('logo sidebara to „Task Manager" (POPRAWKA 3)', () => {
+    withUserAndTasks();
+    renderApp('/dzis');
+    expect(screen.getByText('Task Manager')).toBeInTheDocument();
+  });
+
   it('renderuje sidebar z sekcjami WIDOKI i KATEGORIE oraz kartą usera', () => {
     withUserAndTasks();
     renderApp('/dzis');

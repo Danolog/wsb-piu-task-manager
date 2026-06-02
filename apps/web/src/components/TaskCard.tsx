@@ -1,9 +1,15 @@
-import { CalendarClock, Trash2 } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { CalendarClock, Trash2, Pencil } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
-import type { Category, Task } from '@/features/tasks/model';
+import {
+  DESCRIPTION_MAX,
+  type Category,
+  type Task,
+} from '@/features/tasks/model';
 import {
   PRIORITY_LABEL,
   categoryDotClass,
@@ -16,6 +22,8 @@ export interface TaskCardProps {
   onToggle: (id: string) => void;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
+  /** Zapis notatki edytowanej inline z listy (description). Brak = notatka tylko do odczytu. */
+  onUpdateNote?: (id: string, description: string) => void;
 }
 
 // Wariant Badge priorytetu (wysoki/pilny mocniej wyróżnione).
@@ -33,6 +41,8 @@ const PRIORITY_VARIANT: Record<
  * Karta pojedynczego zadania.
  * Stan „done" sygnalizowany dwoma kanałami (nie tylko kolorem — deuteranopia):
  * przekreślenie tytułu + przyciemnienie całej karty.
+ * Notatka (description) widoczna pod tytułem i edytowalna inline (gdy `onUpdateNote`):
+ * klik notatki/„Dodaj notatkę" → Textarea → zapis aktualizuje description.
  */
 export function TaskCard({
   task,
@@ -40,10 +50,48 @@ export function TaskCard({
   onToggle,
   onEdit,
   onDelete,
+  onUpdateNote,
 }: TaskCardProps) {
   const done = task.status === 'done';
   const due = formatDueDate(task.dueDate);
   const titleId = `task-title-${task.id}`;
+
+  const editable = onUpdateNote !== undefined;
+  const [editingNote, setEditingNote] = useState(false);
+  const [noteDraft, setNoteDraft] = useState(task.description ?? '');
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Wejście w edycję → fokus na końcu tekstu (draft ustawia openNoteEditor).
+  useEffect(() => {
+    if (editingNote) {
+      const el = textareaRef.current;
+      if (el) {
+        el.focus();
+        const len = el.value.length;
+        el.setSelectionRange(len, len);
+      }
+    }
+  }, [editingNote]);
+
+  /** Otwiera inline-edycję notatki ze świeżym draftem z bieżącej wartości. */
+  function openNoteEditor() {
+    setNoteDraft(task.description ?? '');
+    setEditingNote(true);
+  }
+
+  function saveNote() {
+    const trimmed = noteDraft.trim();
+    // Zapis tylko gdy realna zmiana — pusty draft kasuje notatkę (description '').
+    if (trimmed !== (task.description ?? '')) {
+      onUpdateNote?.(task.id, trimmed);
+    }
+    setEditingNote(false);
+  }
+
+  function cancelNote() {
+    setNoteDraft(task.description ?? '');
+    setEditingNote(false);
+  }
 
   return (
     <div
@@ -63,29 +111,104 @@ export function TaskCard({
         aria-label={`${done ? 'Oznacz jako niewykonane' : 'Oznacz jako wykonane'}: ${task.title}`}
       />
 
-      <button
-        type="button"
-        onClick={() => onEdit(task.id)}
-        className="min-w-0 flex-1 cursor-pointer text-left focus-visible:outline-none"
-      >
-        {/* Akcesyjny opis akcji jako sr-only prefiks — nazwa przycisku liczona
-            z treści widocznej (tytuł + odznaki), więc zawiera widoczny tekst
-            (WCAG 2.5.3 label-in-name), a nie tylko aria-label z samym tytułem. */}
-        <span className="sr-only">Edytuj zadanie: </span>
-        <span
-          id={titleId}
-          className={cn(
-            'block truncate text-[15px] font-medium text-ink group-focus-within:underline',
-            done && 'text-ink-muted line-through',
-          )}
+      <div className="min-w-0 flex-1">
+        <button
+          type="button"
+          onClick={() => onEdit(task.id)}
+          className="block w-full cursor-pointer text-left focus-visible:outline-none"
         >
-          {task.title}
-        </span>
-
-        {task.description ? (
-          <span className="mt-0.5 block truncate text-[13px] text-ink-muted">
-            {task.description}
+          {/* Akcesyjny opis akcji jako sr-only prefiks — nazwa przycisku liczona
+              z treści widocznej (tytuł), więc zawiera widoczny tekst
+              (WCAG 2.5.3 label-in-name), a nie tylko aria-label z samym tytułem. */}
+          <span className="sr-only">Edytuj zadanie: </span>
+          <span
+            id={titleId}
+            className={cn(
+              'block truncate text-[15px] font-medium text-ink group-focus-within:underline',
+              done && 'text-ink-muted line-through',
+            )}
+          >
+            {task.title}
           </span>
+        </button>
+
+        {/* Notatka (description): pod tytułem, stonowana (Figma D 22:2).
+            Edytowalna inline gdy przekazano onUpdateNote — klik otwiera Textarea.
+            Poza przyciskiem edycji zadania (rodzeństwo), więc bez button-in-button. */}
+        {editingNote ? (
+          <div className="mt-1.5">
+            <Textarea
+              ref={textareaRef}
+              value={noteDraft}
+              onChange={(e) => setNoteDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Escape') {
+                  e.preventDefault();
+                  cancelNote();
+                }
+                // Ctrl/Cmd+Enter zapisuje (Enter sam = nowa linia w notatce).
+                if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                  e.preventDefault();
+                  saveNote();
+                }
+              }}
+              maxLength={DESCRIPTION_MAX}
+              rows={2}
+              className="min-h-0 text-[13px]"
+              placeholder="Dodaj szczegóły, linki..."
+              aria-label={`Notatka zadania: ${task.title}`}
+            />
+            <div className="mt-1.5 flex items-center gap-2">
+              <Button
+                type="button"
+                size="sm"
+                className="h-7"
+                onClick={saveNote}
+              >
+                Zapisz
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                className="h-7"
+                onClick={cancelNote}
+              >
+                Anuluj
+              </Button>
+            </div>
+          </div>
+        ) : task.description ? (
+          editable ? (
+            <button
+              type="button"
+              onClick={openNoteEditor}
+              className="mt-0.5 flex w-full items-start gap-1.5 text-left text-[13px] text-ink-muted transition-colors hover:text-ink-soft focus-visible:rounded-sm focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+              aria-label={`Edytuj notatkę zadania: ${task.title}`}
+            >
+              <span className="line-clamp-2 min-w-0 flex-1">
+                {task.description}
+              </span>
+              <Pencil
+                className="mt-0.5 size-3 shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
+                aria-hidden="true"
+              />
+            </button>
+          ) : (
+            <span className="mt-0.5 block truncate text-[13px] text-ink-muted">
+              {task.description}
+            </span>
+          )
+        ) : editable ? (
+          <button
+            type="button"
+            onClick={openNoteEditor}
+            className="mt-1 inline-flex items-center gap-1 rounded-sm text-[13px] text-ink-muted opacity-0 transition-opacity group-hover:opacity-100 hover:text-ink-soft focus-visible:opacity-100 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+            aria-label={`Dodaj notatkę do zadania: ${task.title}`}
+          >
+            <Pencil className="size-3" aria-hidden="true" />
+            Dodaj notatkę
+          </button>
         ) : null}
 
         <span className="mt-2 flex flex-wrap items-center gap-2">
@@ -124,7 +247,7 @@ export function TaskCard({
             </span>
           ) : null}
         </span>
-      </button>
+      </div>
 
       {/* Kosz jest rodzeństwem przycisku edycji (nie zagnieżdżony), więc klik
           kosza nie wyzwala onEdit — bez potrzeby stopPropagation. Hit-area ≥ 44×44

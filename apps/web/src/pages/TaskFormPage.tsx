@@ -25,7 +25,7 @@ export function TaskFormPage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-6 md:px-8 md:py-8">
+    <div className="w-full max-w-3xl px-4 py-6 md:px-10 md:py-8 2xl:px-14">
       <div className="mb-6 flex items-center justify-between gap-3">
         <h1 className="text-[11px] font-medium tracking-wide text-ink-soft uppercase">
           Nowe zadanie

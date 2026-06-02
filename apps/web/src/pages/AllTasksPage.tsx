@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/popover';
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { FilterPanel } from '@/components/FilterPanel';
+import { DeleteTaskDialog } from '@/components/DeleteTaskDialog';
 import {
   emptyListFilters,
   hasActiveFilters,
@@ -63,6 +64,8 @@ export function AllTasksPage({ preset }: AllTasksPageProps) {
   // żyją w rozłącznych wrapperach breakpointu, więc per widok dotykalny jest jeden.
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
+  // Zadanie wskazane do usunięcia — kosz otwiera modal potwierdzenia (spójnie z edycją).
+  const [pendingDelete, setPendingDelete] = useState<string | null>(null);
 
   const catSlug = searchParams.get('kat');
   const activeCategoryId = categoryIdFromParam(catSlug);
@@ -112,7 +115,8 @@ export function AllTasksPage({ preset }: AllTasksPageProps) {
     dispatch({ type: 'task/toggle', payload: { id } });
   }
 
-  function handleDelete(id: string) {
+  /** Po potwierdzeniu w modalu: usuń + zostaw toast „Cofnij" (undo) jako bonus. */
+  function confirmDelete(id: string) {
     const task = state.tasks[id];
     if (!task) return;
     dispatch({ type: 'task/delete', payload: { id } });
@@ -124,6 +128,15 @@ export function AllTasksPage({ preset }: AllTasksPageProps) {
       },
     });
   }
+
+  function handleUpdateNote(id: string, description: string) {
+    dispatch({
+      type: 'task/update',
+      payload: { id, changes: { description } },
+    });
+  }
+
+  const pendingTask = pendingDelete ? state.tasks[pendingDelete] : undefined;
 
   const filtersActive = hasActiveFilters(filters);
 
@@ -161,7 +174,7 @@ export function AllTasksPage({ preset }: AllTasksPageProps) {
   );
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-6 md:px-8 md:py-8">
+    <div className="w-full max-w-[120rem] px-4 py-6 md:px-10 md:py-8 2xl:px-14">
       <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div className="flex min-w-0 items-center gap-3">
           <h1 className="font-handwriting text-3xl text-ink">
@@ -258,7 +271,7 @@ export function AllTasksPage({ preset }: AllTasksPageProps) {
             categories={state.categories}
             onToggle={handleToggle}
             onOpen={(id) => navigate(`/zadanie/${id}`)}
-            onDelete={handleDelete}
+            onDelete={(id) => setPendingDelete(id)}
           />
         )}
       </div>
@@ -270,10 +283,23 @@ export function AllTasksPage({ preset }: AllTasksPageProps) {
           categories={state.categories}
           onToggle={handleToggle}
           onEdit={(id) => navigate(`/zadanie/${id}`)}
-          onDelete={handleDelete}
+          onDelete={(id) => setPendingDelete(id)}
+          onUpdateNote={handleUpdateNote}
           filtered={activeCategory !== undefined || filtersActive}
         />
       </div>
+
+      <DeleteTaskDialog
+        open={pendingDelete !== null}
+        taskTitle={pendingTask?.title}
+        onOpenChange={(open) => {
+          if (!open) setPendingDelete(null);
+        }}
+        onConfirm={() => {
+          if (pendingDelete) confirmDelete(pendingDelete);
+          setPendingDelete(null);
+        }}
+      />
     </div>
   );
 }

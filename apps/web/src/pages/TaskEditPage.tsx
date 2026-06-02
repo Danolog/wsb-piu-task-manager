@@ -3,14 +3,7 @@ import { useNavigate, useParams, Navigate } from 'react-router-dom';
 import { X } from 'lucide-react';
 import { useAppState } from '@/app/app-context';
 import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from '@/components/ui/dialog';
+import { DeleteTaskDialog } from '@/components/DeleteTaskDialog';
 import { TaskForm } from '@/components/TaskForm';
 import { selectVisibleTasks, defaultViewFilters } from '@/features/tasks/store';
 import { formatDueShort } from '@/features/tasks/presentation';
@@ -96,7 +89,7 @@ export function TaskEditPage() {
   return (
     <>
       {/* Mobile: pełna strona z nagłówkiem. */}
-      <div className="mx-auto max-w-2xl px-4 py-6 md:hidden">
+      <div className="w-full max-w-2xl px-4 py-6 md:hidden">
         <div className="mb-6 flex items-center justify-between gap-3">
           <h1 className="text-[11px] font-medium tracking-wide text-ink-soft uppercase">
             Edytujesz zadanie
@@ -150,29 +143,12 @@ export function TaskEditPage() {
         </div>
       </div>
 
-      <Dialog open={confirmDelete} onOpenChange={setConfirmDelete}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Usunąć zadanie?</DialogTitle>
-            <DialogDescription>
-              Zadanie „{task.title}" zostanie trwale usunięte. Tej operacji nie
-              można cofnąć z tego ekranu.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="gap-2">
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => setConfirmDelete(false)}
-            >
-              Anuluj
-            </Button>
-            <Button type="button" variant="destructive" onClick={handleDelete}>
-              Usuń zadanie
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DeleteTaskDialog
+        open={confirmDelete}
+        taskTitle={task.title}
+        onOpenChange={setConfirmDelete}
+        onConfirm={handleDelete}
+      />
     </>
   );
 }

@@ -12,6 +12,8 @@ export interface TaskListProps {
   onToggle: (id: string) => void;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
+  /** Zapis notatki edytowanej inline z karty (description). Przekazywane do TaskCard. */
+  onUpdateNote?: (id: string, description: string) => void;
   /** true → użytkownik filtruje/szuka, więc pusta lista to „brak wyników", nie „brak zadań". */
   filtered?: boolean;
   /** Akcja w pustym stanie (np. przycisk „Dodaj zadanie"). */
@@ -91,6 +93,7 @@ export function TaskList({
   onToggle,
   onEdit,
   onDelete,
+  onUpdateNote,
   filtered = false,
   emptyAction,
 }: TaskListProps) {
@@ -151,6 +154,7 @@ export function TaskList({
                       onToggle={onToggle}
                       onEdit={onEdit}
                       onDelete={onDelete}
+                      {...(onUpdateNote ? { onUpdateNote } : {})}
                     />
                   </li>
                 ))}

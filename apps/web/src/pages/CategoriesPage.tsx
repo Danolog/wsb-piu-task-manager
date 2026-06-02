@@ -62,7 +62,7 @@ export function CategoriesPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-6 md:px-8 md:py-8">
+    <div className="w-full max-w-4xl px-4 py-6 md:px-10 md:py-8 2xl:px-14">
       <div className="mb-6 flex items-center justify-between gap-3">
         <h1 className="font-handwriting text-3xl text-ink">Kategorie</h1>
         <Button type="button" size="lg" onClick={() => setEditing('new')}>

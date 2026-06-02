@@ -146,7 +146,7 @@ export function SettingsPage() {
   );
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-6 md:px-8 md:py-8">
+    <div className="w-full max-w-2xl px-4 py-6 md:px-10 md:py-8 2xl:px-14">
       <h1 className="mb-6 font-handwriting text-3xl text-ink md:text-4xl">
         Ustawienia
       </h1>

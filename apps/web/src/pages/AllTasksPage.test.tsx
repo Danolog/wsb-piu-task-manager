@@ -104,7 +104,7 @@ describe('AllTasksPage / TaskTable (P-E)', () => {
     expect(within(table).queryByText('Bez terminu')).not.toBeInTheDocument();
   });
 
-  it('kosz w wierszu usuwa zadanie + toast „Cofnij" przywraca (POPRAWKA 2)', async () => {
+  it('kosz w wierszu otwiera modal potwierdzenia → „Usuń zadanie" kasuje + toast „Cofnij" przywraca (POPRAWKA 4)', async () => {
     const user = userEvent.setup();
     seedWith([
       task({ id: 'a', title: 'Do usunięcia' }),
@@ -117,7 +117,14 @@ describe('AllTasksPage / TaskTable (P-E)', () => {
       within(table).getByRole('button', { name: 'Usuń zadanie: Do usunięcia' }),
     );
 
-    // Zniknęło z listy, drugie zostaje.
+    // Modal potwierdzenia (nie usuwa od razu) — pojawia się dialog z ostrzeżeniem.
+    const dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByText('Usunąć zadanie?')).toBeInTheDocument();
+
+    // Potwierdzenie kasuje.
+    await user.click(
+      within(dialog).getByRole('button', { name: 'Usuń zadanie' }),
+    );
     await waitFor(() =>
       expect(
         within(screen.getByRole('table')).queryByText('Do usunięcia'),
@@ -134,6 +141,25 @@ describe('AllTasksPage / TaskTable (P-E)', () => {
     ).toBeInTheDocument();
   });
 
+  it('w modalu „Anuluj" NIE kasuje zadania (POPRAWKA 4)', async () => {
+    const user = userEvent.setup();
+    seedWith([task({ id: 'a', title: 'Do usunięcia' })]);
+    renderAll('all');
+
+    await user.click(
+      within(screen.getByRole('table')).getByRole('button', {
+        name: 'Usuń zadanie: Do usunięcia',
+      }),
+    );
+    const dialog = await screen.findByRole('dialog');
+    await user.click(within(dialog).getByRole('button', { name: 'Anuluj' }));
+
+    // Zadanie nadal na liście — anulowanie nie usuwa.
+    expect(
+      within(screen.getByRole('table')).getByText('Do usunięcia'),
+    ).toBeInTheDocument();
+  });
+
   it('klik kosza w wierszu NIE otwiera edycji zadania (stopPropagation)', async () => {
     const user = userEvent.setup();
     seedWith([task({ id: 'a', title: 'Do usunięcia' })]);
@@ -145,7 +171,7 @@ describe('AllTasksPage / TaskTable (P-E)', () => {
       }),
     );
 
-    // Klik kosza usuwa, ale nie nawiguje na /zadanie/:id (brak ekranu „Edycja").
+    // Klik kosza otwiera modal, ale nie nawiguje na /zadanie/:id (brak ekranu „Edycja").
     expect(screen.queryByText('Edycja')).not.toBeInTheDocument();
   });
 

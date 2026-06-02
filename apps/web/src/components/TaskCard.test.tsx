@@ -105,4 +105,67 @@ describe('TaskCard', () => {
     await user.click(screen.getByRole('button', { name: /Usuń zadanie/ }));
     expect(onDelete).toHaveBeenCalledWith('t1');
   });
+
+  it('pokazuje notatkę (description) pod tytułem (POPRAWKA 5)', () => {
+    render(
+      <TaskCard
+        task={makeTask({ description: 'Rozdziały 4-6' })}
+        category={category}
+        onToggle={vi.fn()}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    );
+    expect(screen.getByText('Rozdziały 4-6')).toBeInTheDocument();
+  });
+
+  it('inline edycja notatki: zapis wywołuje onUpdateNote z nowym description (POPRAWKA 5)', async () => {
+    const user = userEvent.setup();
+    const onUpdateNote = vi.fn();
+    render(
+      <TaskCard
+        task={makeTask()}
+        category={category}
+        onToggle={vi.fn()}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onUpdateNote={onUpdateNote}
+      />,
+    );
+
+    await user.click(
+      screen.getByRole('button', { name: /Dodaj notatkę do zadania/ }),
+    );
+    await user.type(
+      screen.getByRole('textbox', { name: /Notatka zadania/ }),
+      'Nowa notatka',
+    );
+    await user.click(screen.getByRole('button', { name: 'Zapisz' }));
+
+    expect(onUpdateNote).toHaveBeenCalledWith('t1', 'Nowa notatka');
+  });
+
+  it('klik notatki do edycji NIE wywołuje onEdit (stopPropagation — pełna edycja osobno)', async () => {
+    const user = userEvent.setup();
+    const onEdit = vi.fn();
+    render(
+      <TaskCard
+        task={makeTask({ description: 'Istniejąca notatka' })}
+        category={category}
+        onToggle={vi.fn()}
+        onEdit={onEdit}
+        onDelete={vi.fn()}
+        onUpdateNote={vi.fn()}
+      />,
+    );
+
+    await user.click(
+      screen.getByRole('button', { name: /Edytuj notatkę zadania/ }),
+    );
+    // Otworzyła się inline-edycja notatki, nie pełna edycja zadania.
+    expect(onEdit).not.toHaveBeenCalled();
+    expect(
+      screen.getByRole('textbox', { name: /Notatka zadania/ }),
+    ).toBeInTheDocument();
+  });
 });

@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
@@ -96,5 +96,84 @@ describe('TodayPage (P-D)', () => {
     // Cofnij wraca status do todo (checkbox odznaczony).
     await user.click(screen.getByRole('button', { name: 'Cofnij' }));
     await waitFor(() => expect(screen.getByRole('checkbox')).not.toBeChecked());
+  });
+
+  it('przycisk „Filtruj" zawęża listę dnia po priorytecie (POPRAWKA 2 — reuse FilterPanel)', async () => {
+    const user = userEvent.setup();
+    const t = todayISO();
+    seedWith([
+      task({ id: 'a', title: 'Pilne dziś', dueDate: t, priority: 'urgent' }),
+      task({ id: 'b', title: 'Zwykłe dziś', dueDate: t, priority: 'low' }),
+    ]);
+    renderToday();
+
+    expect(screen.getByText('Pilne dziś')).toBeInTheDocument();
+    expect(screen.getByText('Zwykłe dziś')).toBeInTheDocument();
+
+    // Otwórz panel filtrów (ten sam FilterPanel co „Wszystkie") i wybierz „pilne".
+    await user.click(screen.getAllByRole('button', { name: /Filtruj/ })[0]!);
+    await user.click(screen.getByRole('checkbox', { name: /pilne/ }));
+
+    await waitFor(() =>
+      expect(screen.queryByText('Zwykłe dziś')).not.toBeInTheDocument(),
+    );
+    expect(screen.getByText('Pilne dziś')).toBeInTheDocument();
+  });
+
+  it('kosz otwiera modal potwierdzenia → „Usuń zadanie" kasuje (POPRAWKA 4)', async () => {
+    const user = userEvent.setup();
+    const t = todayISO();
+    seedWith([task({ id: 'a', title: 'Do usunięcia', dueDate: t })]);
+    renderToday();
+
+    await user.click(
+      screen.getByRole('button', { name: 'Usuń zadanie: Do usunięcia' }),
+    );
+    const dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByText('Usunąć zadanie?')).toBeInTheDocument();
+
+    await user.click(
+      within(dialog).getByRole('button', { name: 'Usuń zadanie' }),
+    );
+    await waitFor(() =>
+      expect(screen.queryByText('Do usunięcia')).not.toBeInTheDocument(),
+    );
+  });
+
+  it('w modalu „Anuluj" NIE kasuje zadania (POPRAWKA 4)', async () => {
+    const user = userEvent.setup();
+    const t = todayISO();
+    seedWith([task({ id: 'a', title: 'Zostaje', dueDate: t })]);
+    renderToday();
+
+    await user.click(
+      screen.getByRole('button', { name: 'Usuń zadanie: Zostaje' }),
+    );
+    const dialog = await screen.findByRole('dialog');
+    await user.click(within(dialog).getByRole('button', { name: 'Anuluj' }));
+
+    expect(screen.getByText('Zostaje')).toBeInTheDocument();
+  });
+
+  it('inline edycja notatki z listy zapisuje description (POPRAWKA 5)', async () => {
+    const user = userEvent.setup();
+    const t = todayISO();
+    seedWith([task({ id: 'a', title: 'Zadanie z notatką', dueDate: t })]);
+    renderToday();
+
+    // Brak notatki → „Dodaj notatkę".
+    await user.click(
+      screen.getByRole('button', { name: /Dodaj notatkę do zadania/ }),
+    );
+    const textarea = screen.getByRole('textbox', {
+      name: /Notatka zadania/,
+    });
+    await user.type(textarea, 'Rozdziały 4-6');
+    await user.click(screen.getByRole('button', { name: 'Zapisz' }));
+
+    // Notatka widoczna pod tytułem (description zapisane w stanie).
+    await waitFor(() =>
+      expect(screen.getByText('Rozdziały 4-6')).toBeInTheDocument(),
+    );
   });
 });

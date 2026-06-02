@@ -125,7 +125,7 @@ test('edycja + usuwanie: zmień → Zapisz; potem Usuń → modal → znika', as
   ).toBeHidden();
 });
 
-test('kosz w wierszu tabeli (desktop): Usuń → toast → Cofnij przywraca', async ({
+test('kosz w wierszu tabeli (desktop): modal potwierdzenia → Usuń → toast → Cofnij przywraca', async ({
   page,
 }) => {
   await completeOnboarding(page);
@@ -136,10 +136,14 @@ test('kosz w wierszu tabeli (desktop): Usuń → toast → Cofnij przywraca', as
     table.getByText('Szybkie usuwanie', { exact: true }),
   ).toBeVisible();
 
-  // Kosz po prawej w wierszu — usuwa od razu (bez modala), z undo przez toast.
+  // Kosz po prawej w wierszu — otwiera modal potwierdzenia (spójnie z edycją),
+  // dopiero „Usuń zadanie" w modalu kasuje. Undo przez toast jako bonus.
   await table
     .getByRole('button', { name: 'Usuń zadanie: Szybkie usuwanie' })
     .click();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog.getByText('Usunąć zadanie?')).toBeVisible();
+  await dialog.getByRole('button', { name: 'Usuń zadanie' }).click();
   await expect(
     page.getByRole('table').getByText('Szybkie usuwanie', { exact: true }),
   ).toBeHidden();

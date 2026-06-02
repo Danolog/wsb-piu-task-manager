@@ -1,15 +1,28 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, CalendarCheck } from 'lucide-react';
+import { Plus, CalendarCheck, SlidersHorizontal } from 'lucide-react';
 import { format } from 'date-fns';
 import { pl } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { useAppState } from '@/app/app-context';
 import { Button } from '@/components/ui/button';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
+import { FilterPanel } from '@/components/FilterPanel';
 import { TaskCard } from '@/components/TaskCard';
 import { EmptyState } from '@/components/EmptyState';
 import { ProgressBar } from '@/components/ProgressBar';
 import { StreakBadge } from '@/components/StreakBadge';
+import { DeleteTaskDialog } from '@/components/DeleteTaskDialog';
+import {
+  emptyListFilters,
+  hasActiveFilters,
+  type ListFilterState,
+} from '@/features/tasks/list-filters';
 import {
   selectVisibleTasks,
   selectStreak,
@@ -29,27 +42,54 @@ function todayISO(): string {
 /**
  * Kokpit „Dziś" (P-D, /dzis): powitanie, data, pasek postępu, seria,
  * lista zadań na dziś (dueDate === dzisiaj — decyzja 11.2), pusty stan,
- * toast „Cofnij" po odhaczeniu. Zastępuje tymczasowy TasksPage na tej trasie.
+ * toast „Cofnij" po odhaczeniu. Filtr (priorytet/kategoria/sort) jak w „Wszystkie"
+ * — ten sam FilterPanel (popover desktop / sheet mobile), stan lokalny widoku.
  */
 export function TodayPage() {
   const { state, dispatch } = useAppState();
   const navigate = useNavigate();
   const today = todayISO();
 
-  const tasks = useMemo(
-    () =>
-      selectVisibleTasks(
-        state,
-        {
-          ...defaultViewFilters,
-          datePreset: 'today',
-          sortBy: 'dueDate',
-          sortDir: 'asc',
-        },
-        today,
-      ),
-    [state, today],
+  const [filters, setFilters] = useState<ListFilterState>(emptyListFilters);
+  // Osobne stany otwarcia: Popover (desktop) i Sheet (mobile) portalowane do body —
+  // wspólny stan otwierałby obie warstwy naraz (spójnie z AllTasksPage).
+  const [popoverOpen, setPopoverOpen] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  // Zadanie wskazane do usunięcia — otwiera modal potwierdzenia (spójnie z edycją).
+  const [pendingDelete, setPendingDelete] = useState<string | null>(null);
+
+  const categories = useMemo(
+    () => Object.values(state.categories),
+    [state.categories],
   );
+
+  const tasks = useMemo(() => {
+    const base = selectVisibleTasks(
+      state,
+      {
+        ...defaultViewFilters,
+        datePreset: 'today',
+        sortBy: filters.sortBy,
+        sortDir: 'asc',
+      },
+      today,
+    );
+    return base.filter((task) => {
+      if (
+        filters.priorities.length > 0 &&
+        !filters.priorities.includes(task.priority)
+      ) {
+        return false;
+      }
+      if (
+        filters.categoryIds.length > 0 &&
+        (!task.categoryId || !filters.categoryIds.includes(task.categoryId))
+      ) {
+        return false;
+      }
+      return true;
+    });
+  }, [state, today, filters]);
   const progress = useMemo(
     () => selectTodayProgress(state, today),
     [state, today],
@@ -58,6 +98,7 @@ export function TodayPage() {
 
   const greetingName = state.user.name.trim() || 'Cześć';
   const dateLabel = format(new Date(), 'EEEE · d MMMM', { locale: pl });
+  const filtersActive = hasActiveFilters(filters);
 
   /**
    * Toggle z toastem „Cofnij" po ukończeniu (D 43:2 / M 41:2).
@@ -77,7 +118,8 @@ export function TodayPage() {
     }
   }
 
-  function handleDelete(id: string) {
+  /** Po potwierdzeniu w modalu: usuń + zostaw toast „Cofnij" (undo) jako bonus. */
+  function confirmDelete(id: string) {
     const task = state.tasks[id];
     if (!task) return;
     dispatch({ type: 'task/delete', payload: { id } });
@@ -90,8 +132,20 @@ export function TodayPage() {
     });
   }
 
+  const pendingTask = pendingDelete ? state.tasks[pendingDelete] : undefined;
+
+  const renderPanel = (onApply: () => void) => (
+    <FilterPanel
+      categories={categories}
+      value={filters}
+      onChange={setFilters}
+      count={tasks.length}
+      onApply={onApply}
+    />
+  );
+
   return (
-    <div className="mx-auto max-w-3xl px-4 py-6 md:px-8 md:py-8">
+    <div className="w-full max-w-[100rem] px-4 py-6 md:px-10 md:py-8 2xl:px-14">
       <div className="mb-6 flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-xs font-medium tracking-wide text-ink-muted uppercase">
@@ -101,14 +155,61 @@ export function TodayPage() {
             {state.user.name.trim() ? `Cześć, ${greetingName}` : 'Cześć'}
           </h1>
         </div>
-        <Button
-          type="button"
-          onClick={() => navigate('/nowe')}
-          className="h-9 shrink-0"
-        >
-          <Plus className="size-4" aria-hidden="true" />
-          Nowe zadanie
-        </Button>
+        <div className="flex shrink-0 items-center gap-2">
+          {/* Desktop: Popover z filtrami (ten sam FilterPanel co „Wszystkie"). */}
+          <div className="hidden md:block">
+            <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+              <PopoverTrigger asChild>
+                <Button type="button" variant="outline" className="h-9">
+                  <SlidersHorizontal className="size-4" aria-hidden="true" />
+                  Filtruj
+                  {filtersActive ? (
+                    <span className="ml-1 inline-flex size-5 items-center justify-center rounded-full bg-cta text-xs text-cta-foreground tabular-nums">
+                      {filters.priorities.length + filters.categoryIds.length}
+                    </span>
+                  ) : null}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-80">
+                {renderPanel(() => setPopoverOpen(false))}
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          {/* Mobile: wyzwalacz bottom-sheeta z filtrami. */}
+          <div className="md:hidden">
+            <Button
+              type="button"
+              variant="outline"
+              className="h-9"
+              onClick={() => setSheetOpen(true)}
+              aria-haspopup="dialog"
+            >
+              <SlidersHorizontal className="size-4" aria-hidden="true" />
+              Filtruj
+              {filtersActive ? (
+                <span className="ml-1 inline-flex size-5 items-center justify-center rounded-full bg-cta text-xs text-cta-foreground tabular-nums">
+                  {filters.priorities.length + filters.categoryIds.length}
+                </span>
+              ) : null}
+            </Button>
+            <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+              <SheetContent>
+                <SheetTitle className="sr-only">Filtry</SheetTitle>
+                {renderPanel(() => setSheetOpen(false))}
+              </SheetContent>
+            </Sheet>
+          </div>
+
+          <Button
+            type="button"
+            onClick={() => navigate('/nowe')}
+            className="h-9 shrink-0"
+          >
+            <Plus className="size-4" aria-hidden="true" />
+            Nowe zadanie
+          </Button>
+        </div>
       </div>
 
       <div className="mb-6 space-y-3">
@@ -130,17 +231,25 @@ export function TodayPage() {
       </div>
 
       {tasks.length === 0 ? (
-        <EmptyState
-          icon={CalendarCheck}
-          title="Czysto na dziś"
-          description="Nie masz dziś żadnych zadań. Dodaj pierwsze i zacznij dzień z planem."
-          action={
-            <Button type="button" onClick={() => navigate('/nowe')}>
-              <Plus className="size-4" aria-hidden="true" />
-              Dodaj pierwsze zadanie
-            </Button>
-          }
-        />
+        filtersActive ? (
+          <EmptyState
+            icon={CalendarCheck}
+            title="Brak zadań dla tych filtrów"
+            description="Zmień filtry, aby zobaczyć inne zadania dnia."
+          />
+        ) : (
+          <EmptyState
+            icon={CalendarCheck}
+            title="Czysto na dziś"
+            description="Nie masz dziś żadnych zadań. Dodaj pierwsze i zacznij dzień z planem."
+            action={
+              <Button type="button" onClick={() => navigate('/nowe')}>
+                <Plus className="size-4" aria-hidden="true" />
+                Dodaj pierwsze zadanie
+              </Button>
+            }
+          />
+        )
       ) : (
         <ul className="space-y-2">
           {tasks.map((task) => (
@@ -154,12 +263,30 @@ export function TodayPage() {
                 }
                 onToggle={handleToggle}
                 onEdit={(id) => navigate(`/zadanie/${id}`)}
-                onDelete={handleDelete}
+                onDelete={(id) => setPendingDelete(id)}
+                onUpdateNote={(id, description) =>
+                  dispatch({
+                    type: 'task/update',
+                    payload: { id, changes: { description } },
+                  })
+                }
               />
             </li>
           ))}
         </ul>
       )}
+
+      <DeleteTaskDialog
+        open={pendingDelete !== null}
+        taskTitle={pendingTask?.title}
+        onOpenChange={(open) => {
+          if (!open) setPendingDelete(null);
+        }}
+        onConfirm={() => {
+          if (pendingDelete) confirmDelete(pendingDelete);
+          setPendingDelete(null);
+        }}
+      />
     </div>
   );
 }

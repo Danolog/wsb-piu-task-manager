@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { useAppState } from '@/app/app-context';
 import { SearchBar } from '@/components/SearchBar';
 import { TaskCard } from '@/components/TaskCard';
+import { DeleteTaskDialog } from '@/components/DeleteTaskDialog';
 import { selectVisibleTasks, defaultViewFilters } from '@/features/tasks/store';
 import { lookupCategory } from '@/features/tasks/presentation';
 
@@ -17,6 +18,7 @@ export function SearchPage() {
   const { state, dispatch } = useAppState();
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
+  const [pendingDelete, setPendingDelete] = useState<string | null>(null);
 
   const trimmed = query.trim();
 
@@ -34,7 +36,7 @@ export function SearchPage() {
     dispatch({ type: 'task/toggle', payload: { id } });
   }
 
-  function handleDelete(id: string) {
+  function confirmDelete(id: string) {
     const task = state.tasks[id];
     if (!task) return;
     dispatch({ type: 'task/delete', payload: { id } });
@@ -47,8 +49,17 @@ export function SearchPage() {
     });
   }
 
+  function handleUpdateNote(id: string, description: string) {
+    dispatch({
+      type: 'task/update',
+      payload: { id, changes: { description } },
+    });
+  }
+
+  const pendingTask = pendingDelete ? state.tasks[pendingDelete] : undefined;
+
   return (
-    <div className="mx-auto max-w-2xl px-4 py-6 md:px-8 md:py-8">
+    <div className="w-full px-4 py-6 md:px-10 md:py-8 2xl:px-14">
       <SearchBar value={query} onChange={setQuery} />
 
       {!trimmed ? (
@@ -80,7 +91,8 @@ export function SearchPage() {
                     category={lookupCategory(state.categories, task.categoryId)}
                     onToggle={handleToggle}
                     onEdit={(id) => navigate(`/zadanie/${id}`)}
-                    onDelete={handleDelete}
+                    onDelete={(id) => setPendingDelete(id)}
+                    onUpdateNote={handleUpdateNote}
                   />
                 </li>
               ))}
@@ -88,6 +100,18 @@ export function SearchPage() {
           )}
         </>
       )}
+
+      <DeleteTaskDialog
+        open={pendingDelete !== null}
+        taskTitle={pendingTask?.title}
+        onOpenChange={(open) => {
+          if (!open) setPendingDelete(null);
+        }}
+        onConfirm={() => {
+          if (pendingDelete) confirmDelete(pendingDelete);
+          setPendingDelete(null);
+        }}
+      />
     </div>
   );
 }
