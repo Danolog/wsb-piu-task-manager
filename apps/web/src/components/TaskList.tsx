@@ -11,6 +11,7 @@ export interface TaskListProps {
   categories: Record<string, Category>;
   onToggle: (id: string) => void;
   onEdit: (id: string) => void;
+  onDelete: (id: string) => void;
   /** true → użytkownik filtruje/szuka, więc pusta lista to „brak wyników", nie „brak zadań". */
   filtered?: boolean;
   /** Akcja w pustym stanie (np. przycisk „Dodaj zadanie"). */
@@ -89,6 +90,7 @@ export function TaskList({
   categories,
   onToggle,
   onEdit,
+  onDelete,
   filtered = false,
   emptyAction,
 }: TaskListProps) {
@@ -148,6 +150,7 @@ export function TaskList({
                       }
                       onToggle={onToggle}
                       onEdit={onEdit}
+                      onDelete={onDelete}
                     />
                   </li>
                 ))}

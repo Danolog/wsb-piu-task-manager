@@ -1,6 +1,7 @@
-import { CalendarClock } from 'lucide-react';
+import { CalendarClock, Trash2 } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { Category, Task } from '@/features/tasks/model';
 import {
@@ -14,6 +15,7 @@ export interface TaskCardProps {
   category?: Category | undefined;
   onToggle: (id: string) => void;
   onEdit: (id: string) => void;
+  onDelete: (id: string) => void;
 }
 
 // Wariant Badge priorytetu (wysoki/pilny mocniej wyróżnione).
@@ -32,7 +34,13 @@ const PRIORITY_VARIANT: Record<
  * Stan „done" sygnalizowany dwoma kanałami (nie tylko kolorem — deuteranopia):
  * przekreślenie tytułu + przyciemnienie całej karty.
  */
-export function TaskCard({ task, category, onToggle, onEdit }: TaskCardProps) {
+export function TaskCard({
+  task,
+  category,
+  onToggle,
+  onEdit,
+  onDelete,
+}: TaskCardProps) {
   const done = task.status === 'done';
   const due = formatDueDate(task.dueDate);
   const titleId = `task-title-${task.id}`;
@@ -50,8 +58,7 @@ export function TaskCard({ task, category, onToggle, onEdit }: TaskCardProps) {
         onCheckedChange={() => onToggle(task.id)}
         // Min 32×32 px klikalnej powierzchni (checkbox + ::after w prymitywie powiększa hit-area).
         className="mt-0.5 size-5"
-        aria-labelledby={titleId}
-        aria-label={done ? 'Oznacz jako niewykonane' : 'Oznacz jako wykonane'}
+        aria-label={`${done ? 'Oznacz jako niewykonane' : 'Oznacz jako wykonane'}: ${task.title}`}
       />
 
       <button
@@ -113,6 +120,17 @@ export function TaskCard({ task, category, onToggle, onEdit }: TaskCardProps) {
           ) : null}
         </span>
       </button>
+
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        aria-label={`Usuń zadanie: ${task.title}`}
+        onClick={() => onDelete(task.id)}
+        className="shrink-0 text-ink-muted hover:text-danger"
+      >
+        <Trash2 className="size-4" aria-hidden="true" />
+      </Button>
     </div>
   );
 }

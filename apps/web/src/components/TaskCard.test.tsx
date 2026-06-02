@@ -30,6 +30,7 @@ describe('TaskCard', () => {
         category={category}
         onToggle={vi.fn()}
         onEdit={vi.fn()}
+        onDelete={vi.fn()}
       />,
     );
 
@@ -46,6 +47,7 @@ describe('TaskCard', () => {
         category={category}
         onToggle={vi.fn()}
         onEdit={vi.fn()}
+        onDelete={vi.fn()}
       />,
     );
 
@@ -62,6 +64,7 @@ describe('TaskCard', () => {
         category={category}
         onToggle={onToggle}
         onEdit={vi.fn()}
+        onDelete={vi.fn()}
       />,
     );
 
@@ -78,10 +81,28 @@ describe('TaskCard', () => {
         category={category}
         onToggle={vi.fn()}
         onEdit={onEdit}
+        onDelete={vi.fn()}
       />,
     );
 
     await user.click(screen.getByRole('button', { name: /Edytuj zadanie/ }));
     expect(onEdit).toHaveBeenCalledWith('t1');
+  });
+
+  it('klik kosza wywołuje onDelete z id zadania', async () => {
+    const user = userEvent.setup();
+    const onDelete = vi.fn();
+    render(
+      <TaskCard
+        task={makeTask()}
+        category={category}
+        onToggle={vi.fn()}
+        onEdit={vi.fn()}
+        onDelete={onDelete}
+      />,
+    );
+
+    await user.click(screen.getByRole('button', { name: /Usuń zadanie/ }));
+    expect(onDelete).toHaveBeenCalledWith('t1');
   });
 });

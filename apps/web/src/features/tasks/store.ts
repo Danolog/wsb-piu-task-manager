@@ -18,6 +18,7 @@ export type Action =
       payload: { id: TaskId; changes: Partial<TaskInput> };
     }
   | { type: 'task/delete'; payload: { id: TaskId } }
+  | { type: 'task/restore'; payload: { task: Task } }
   | { type: 'task/toggle'; payload: { id: TaskId } }
   | { type: 'category/add'; payload: { name: string; color: string } }
   | {
@@ -74,6 +75,12 @@ export function rootReducer(state: AppState, action: Action): AppState {
       const next = { ...state.tasks };
       delete next[action.payload.id];
       return { ...state, tasks: next };
+    }
+
+    case 'task/restore': {
+      // Wstawia z powrotem usunięte zadanie z ORYGINALNYM id i polami (undo po task/delete).
+      const { task } = action.payload;
+      return { ...state, tasks: { ...state.tasks, [task.id]: task } };
     }
 
     case 'task/toggle': {
