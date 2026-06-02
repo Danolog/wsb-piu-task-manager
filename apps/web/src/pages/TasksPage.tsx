@@ -110,12 +110,12 @@ export function TasksPage() {
 
         {/* Toolbar: szukaj, status, sort, kategorie */}
         <div className="mb-6 space-y-3">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
             <SearchBar
               value={filters.search}
               onChange={(search) => setFilters((f) => ({ ...f, search }))}
             />
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <StatusTabs
                 value={filters.status}
                 onChange={(status) => setFilters((f) => ({ ...f, status }))}
