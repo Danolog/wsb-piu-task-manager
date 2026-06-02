@@ -7,12 +7,15 @@
 
 ## Metoda pomiaru i ograniczenia środowiska
 
-- **Testy automatyczne uruchomione realnie:** Vitest (49 testów jednostkowych/komponentowych) + Playwright/Chromium headless (13 testów e2e). Wszystkie zielone.
+> **Aktualizacja 2026-06-02 (sieć dostępna).** W tej turze rejestr npm był dostępny — doinstalowano `@axe-core/playwright` i `lighthouse`, a oba audyty uruchomiono **realnie na preview build** (`http://localhost:4173`). Sekcje a11y i Performance zawierają teraz zmierzone liczby, nie tylko audyt kodu.
+
+- **Testy automatyczne uruchomione realnie:** Vitest (49 testów jednostkowych/komponentowych) + Playwright/Chromium headless (16 testów e2e, w tym 3 axe a11y). Wszystkie zielone.
+- **axe (a11y) — uruchomiony realnie.** `@axe-core/playwright` doinstalowany; `e2e/a11y.spec.ts` (3 widoki, bramka 0 naruszeń serious/critical) odpalony. Wynik przed→po niżej w sekcji Accessibility.
+- **Lighthouse — uruchomiony realnie** (lighthouse v13.3.0, headless Chrome, preview build na :4173). Cztery kategorie zmierzone, liczby niżej w sekcji Performance.
 - **Czym NIE zmierzono (uczciwie):**
-  - **Lighthouse — NIE uruchomiony.** Środowisko nie ma dostępu do rejestru npm (offline), więc nie dało się zainstalować `lighthouse` / `playwright-lighthouse` / `unlighthouse`. Wynik 90+ **nie jest potwierdzony pomiarem** w tej turze. Do zmierzenia ręcznie przez właściciela: Chrome DevTools → zakładka Lighthouse na preview build (`npm run preview`), albo `npx lighthouse http://localhost:4173 --view` po `npm i -g lighthouse`.
-  - **axe — testy NAPISANE, ale SKIPowane.** `@axe-core/playwright` nie dał się doinstalować (offline). Testy `e2e/a11y.spec.ts` są gotowe i uruchomią się automatycznie po `npm install -D @axe-core/playwright` (mają bramkę 0 naruszeń serious/critical). W tej turze a11y zweryfikowane **manualnym audytem kodu** (patrz sekcja Accessibility) — nie automatem.
-  - **Cross-browser Firefox/WebKit — NIE uruchomione.** `playwright.config.ts` ma tylko projekt `chromium`; przeglądarki Firefox/WebKit nie są zainstalowane i nie dało się ich pobrać offline.
-- **Zmierzone twardo:** rozmiary bundle (build), transfer JS na trasie `/` (Playwright network), zachowanie responsywne na 375/768/1280 (Playwright viewporty z asercją braku poziomego overflow).
+  - **Cross-browser Firefox/WebKit — NIE uruchomione.** `playwright.config.ts` ma tylko projekt `chromium`; przeglądarki Firefox/WebKit nie zainstalowane. Lighthouse i axe mierzą tylko silnik Chromium.
+  - **Lighthouse mobile + screen reader** — pomiar Lighthouse zrobiony w profilu domyślnym (desktop-ish, headless). Mobilny throttling i przebieg czytnikiem ekranu (NVDA/VoiceOver) zostają do ręcznej weryfikacji człowieka.
+- **Zmierzone twardo:** axe (przed/po), Lighthouse (4 kategorie), rozmiary bundle (build), transfer JS na trasie `/` (Playwright network), responsywność 375/768/1280 (Playwright viewporty z asercją braku poziomego overflow).
 
 ---
 
@@ -44,20 +47,32 @@
 
 ## Accessibility (a11y)
 
-> Zweryfikowane **manualnym audytem kodu** (axe automatem SKIP — patrz wyżej).
+> Zweryfikowane **realnie axe-core** (3 widoki) + audyt kodu. Lighthouse Accessibility = **100/100**.
 
-- ⚠️ axe DevTools zero violations — testy gotowe (`e2e/a11y.spec.ts`, 3 widoki, bramka serious/critical), **nieuruchomione** (brak pakietu offline). Uruchom po instalacji `@axe-core/playwright`.
+- ✅ **axe zero naruszeń serious/critical — ZMIERZONE.** `e2e/a11y.spec.ts` (lista zadań, modal formularza, ustawienia) uruchomione realnie. **Przed: 2 naruszenia → Po: 0.**
+  - **aria-valid-attr-value (critical)** — filtr statusu (Radix Tabs) nadawał triggerom `aria-controls` wskazujące na panele treści, których nie było w DOM (filtr sterował listą poza komponentem). Naprawa: dodane `TabsContent` z `forceMount` dla każdej zakładki (`StatusTabs.tsx`), panele `sr-only` — `aria-controls` wskazuje teraz realny element.
+  - **color-contrast (serious)** — nieaktywna zakładka filtra miała `text-foreground/60` = `#747067` na `#efe9db` = **4.07:1** (< AA 4.5:1). Naprawa: `text-foreground/70` = `#605c53` = **5.5:1** (`ui/tabs.tsx`). Wariant dark nietknięty (używa `muted-foreground` = 4.94:1, OK).
+- ✅ Kontrasty WCAG AA — pozostałe pary z tokenów Figmy zweryfikowane przez axe (Lighthouse a11y 100), policzone też ręcznie: ink `#221f19`/canvas `#f4efe4` = 14.3:1, ink-muted `#6e6757`/surface-alt `#efe9db` = 4.64:1, ink-soft `#5f5849`/canvas = 6.15:1. Dark: ink-muted `#a39c8a`/canvas `#1c1a15` = 6.36:1. Wszystkie ≥ 4.5:1.
 - ✅ Wszystko klawiaturą — e2e keyboard: otwarcie modalu Enterem, autoFocus na tytule (focus trap Radix), submit Enterem, zamknięcie Esc, toggle checkboxa Space. Nawigacja po Radix/shadcn (Dialog, Tabs, Select, Popover) dostępna z definicji.
 - ✅ Status nie tylko kolorem (WCAG 1.4.1) — done = przekreślenie + przyciemnienie, nie sam kolor; terminy „po terminie/dzisiaj" mają tekst `sr-only`.
 - ✅ Etykiety i ARIA — formularze: `<Label htmlFor>`, `aria-invalid`, `aria-describedby`, błędy `role="alert"`. Ikony `aria-hidden`. Przyciski akcji (checkbox/edytuj/usuń) mają opisowy `aria-label` z tytułem zadania. Nawigacja `aria-label`. `<html lang="pl">`, `<title>` ustawione.
 - ⬜ Screen reader walk-through (NVDA/VoiceOver) — niezweryfikowane ręcznie w tej turze (wymaga człowieka + czytnika ekranu). Markup pod to przygotowany (role, sr-only, focus order).
-- 🚫 Kontrasty WCAG AA — nie zmierzone automatem (axe robi to, ale SKIP). Tokeny kolorów z Figmy projektowane pod AA (ink `#221f19` na canvas `#f4efe4`), ale **kontrast nie został zweryfikowany narzędziem** w tej turze.
 
 ## Performance
 
-- 🚫 Lighthouse 90+ — **NIE zmierzone** (offline, brak narzędzia). Do ręcznego pomiaru przez właściciela na preview build.
+- ✅ **Lighthouse — ZMIERZONE realnie** (v13.3.0, headless Chrome, preview build `:4173`):
+
+  | Kategoria | Wynik | Cel 90+ |
+  |---|---|---|
+  | Performance | **86** | ⚠️ poniżej |
+  | Accessibility | **100** | ✅ |
+  | Best Practices | **100** | ✅ |
+  | SEO | **100** | ✅ (było 82 przed naprawą) |
+
+  - **SEO 82 → 100.** Naprawione: brak `<meta name="description">` (dodany w `index.html`) + nieprawidłowy robots.txt (SPA serwowała HTML zamiast pliku — dodany `public/robots.txt`).
+  - **Performance 86 (poniżej 90).** Uczciwie: ciągnie w dół **tylko FCP 2.4s (score 69) i LCP 3.7s (score 57)** — pojedynczy bundle wejściowy + ładowanie fontów na zimnym preview. Reszta wzorowa: TBT 40ms (100), CLS 0.001 (100), Speed Index 2.4s (98). Domknięcie do 90+ wymaga preload fontów / dalszego code-splittingu wejściowego chunku — osobne zadanie optymalizacyjne (ryzyko regresji na działającym buildzie), **nie robione w tej turze QA**. Pomiar lokalny waha się ±1–2 pkt między przebiegami.
 - ⚠️ Bundle <200kb gzipped — **częściowo.** Po code-splittingu największy chunk wejściowy = **381kB / ~117kB gzip**; znika ostrzeżenie build o chunku >500kb. Cel „<200kb gzip" dla initial bundle **osiągnięty dla głównego chunku JS** (~117kB gzip). Pełny transfer trasy `/` (zmierzony Playwright network, surowo): ~567kB JS w 7 plikach → po gzip/brotli orientacyjnie ~170–190kB. Modal formularza (103kB, react-hook-form+zod+kalendarz) i Ustawienia (6kB) **nie ładują się na starcie** — dopiero przy otwarciu/wejściu na trasę.
-- ⬜ CLS < 0.1 — nie zmierzone (część Lighthouse). Czcionki self-hosted (fontsource) + brak obrazów ładowanych asynchronicznie ogranicza ryzyko skoków układu, ale **nie potwierdzone pomiarem**.
+- ✅ CLS < 0.1 — **zmierzone Lighthouse: 0.001** (praktycznie zero skoków układu). Czcionki self-hosted (fontsource) + brak obrazów asynchronicznych.
 
 ### Bundle przed/po code-splitting (twarde liczby z `npm run build`)
 
@@ -84,16 +99,16 @@
 | Bramka | Stan |
 |---|---|
 | Typecheck / Lint / Unit (49) / Build | ✅ wszystkie zielone |
-| E2E (13 testów, Chromium) | ✅ zielone |
-| E2E a11y (axe, 3 testy) | ⚠️ napisane, SKIP (brak pakietu offline) |
+| E2E (16 testów, Chromium) | ✅ zielone |
+| E2E a11y (axe, 3 testy) | ✅ uruchomione realnie — 2 naruszenia → **0** serious/critical |
 | Code-splitting (advisory >500kb) | ✅ usunięte |
 | Responsywność 375/768/1280 | ✅ + naprawiony błąd toolbar 768 |
-| Lighthouse 90+ | 🚫 niezmierzone w tym środowisku |
-| Cross-browser Firefox/WebKit | 🚫 niezmierzone (brak przeglądarek offline) |
+| Lighthouse Accessibility / Best Practices / SEO | ✅ **100 / 100 / 100** |
+| Lighthouse Performance 90+ | ⚠️ **86** (FCP/LCP; reszta metryk 98–100) |
+| Cross-browser Firefox/WebKit | 🚫 niezmierzone (przeglądarki niezainstalowane) |
 
-## Do dokończenia przez właściciela (gdy sieć dostępna)
+## Do dokończenia przez właściciela
 
-1. `npm install -D @axe-core/playwright` → `npx playwright test e2e/a11y.spec.ts` (bramka 0 serious/critical odpali się sama).
-2. Lighthouse na preview: `npm run build && npm run preview` → Chrome DevTools → Lighthouse (mobile + desktop), cel 90+ w 4 kategoriach. Alternatywnie `npx lighthouse http://localhost:4173 --view`.
-3. (Opcjonalnie) dodać projekty `firefox`/`webkit` w `playwright.config.ts` + `npx playwright install firefox webkit`, by domknąć cross-browser.
-4. Manualny przebieg czytnikiem ekranu (NVDA na Windows) na flow: dodaj → oznacz → usuń.
+1. **Performance 86 → 90+** (opcjonalne, jakość): preload fontów (`<link rel="preload">` na woff2 Inter) i/lub dalszy split wejściowego chunku — poprawia FCP/LCP. Osobne zadanie optymalizacyjne (nie QA).
+2. (Opcjonalnie) dodać projekty `firefox`/`webkit` w `playwright.config.ts` + `npx playwright install firefox webkit`, by domknąć cross-browser.
+3. Manualny przebieg czytnikiem ekranu (NVDA na Windows) na flow: dodaj → oznacz → usuń.
