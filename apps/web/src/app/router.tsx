@@ -20,10 +20,17 @@ const NotFoundPage = lazy(() =>
 const OnboardingPage = lazy(() =>
   import('@/pages/OnboardingPage').then((m) => ({ default: m.OnboardingPage })),
 );
-const PlaceholderPage = lazy(() =>
-  import('@/pages/PlaceholderPage').then((m) => ({
-    default: m.PlaceholderPage,
-  })),
+const TaskFormPage = lazy(() =>
+  import('@/pages/TaskFormPage').then((m) => ({ default: m.TaskFormPage })),
+);
+const TaskEditPage = lazy(() =>
+  import('@/pages/TaskEditPage').then((m) => ({ default: m.TaskEditPage })),
+);
+const SearchPage = lazy(() =>
+  import('@/pages/SearchPage').then((m) => ({ default: m.SearchPage })),
+);
+const CategoriesPage = lazy(() =>
+  import('@/pages/CategoriesPage').then((m) => ({ default: m.CategoriesPage })),
 );
 
 /** Minimalny fallback na czas doładowania chunku trasy (zwykle kilkadziesiąt ms). */
@@ -78,32 +85,17 @@ export const router = createBrowserRouter([
       },
       {
         path: 'szukaj',
-        element: withSuspense(<PlaceholderPage title="Szukaj" />),
+        element: withSuspense(<SearchPage />),
       },
       {
         path: 'kategorie',
-        element: withSuspense(<PlaceholderPage title="Kategorie" />),
+        element: withSuspense(<CategoriesPage />),
       },
       { path: 'ustawienia', element: withSuspense(<SettingsPage />) },
-    ],
-  },
-
-  // Strony formularza — pełna strona (bez AppShell), ale za bramką onboardingu.
-  {
-    element: (
-      <RequireOnboarding>
-        <BareLayout />
-      </RequireOnboarding>
-    ),
-    children: [
-      {
-        path: 'nowe',
-        element: withSuspense(<PlaceholderPage title="Nowe zadanie" />),
-      },
-      {
-        path: 'zadanie/:id',
-        element: withSuspense(<PlaceholderPage title="Szczegóły zadania" />),
-      },
+      // Strony formularza w AppShell: desktop = sidebar + treść (D 133:2 / D 22:2);
+      // mobile = pełna strona z nagłówkiem (M 13:2 / M 13:59).
+      { path: 'nowe', element: withSuspense(<TaskFormPage />) },
+      { path: 'zadanie/:id', element: withSuspense(<TaskEditPage />) },
     ],
   },
 

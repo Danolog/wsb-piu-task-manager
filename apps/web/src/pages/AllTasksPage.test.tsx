@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, within, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
@@ -124,6 +124,70 @@ describe('AllTasksPage / TaskTable (P-E)', () => {
     );
     expect(
       within(screen.getByRole('table')).getByText('Zadanie pracowe'),
+    ).toBeInTheDocument();
+  });
+});
+
+describe('AllTasksPage — filtry (P-G)', () => {
+  beforeEach(() => localStorage.clear());
+
+  it('Popover filtra zawęża po priorytecie i pokazuje liczbę w „Pokaż N"', async () => {
+    const user = userEvent.setup();
+    seedWith([
+      task({ id: 'a', title: 'Pilne zadanie', priority: 'urgent' }),
+      task({ id: 'b', title: 'Zwykłe zadanie', priority: 'medium' }),
+    ]);
+    renderAll('all');
+
+    // Otwórz popover (desktopowy przycisk „Filtruj").
+    await user.click(screen.getAllByRole('button', { name: /Filtruj/ })[0]!);
+    // Zaznacz priorytet „pilne".
+    await user.click(screen.getByRole('checkbox', { name: 'pilne' }));
+
+    // Licznik w CTA odzwierciedla zawężenie do 1.
+    expect(
+      screen.getByRole('button', { name: /Pokaż 1 zadanie/ }),
+    ).toBeInTheDocument();
+  });
+
+  it('„Wyczyść" resetuje filtry', async () => {
+    const user = userEvent.setup();
+    seedWith([
+      task({ id: 'a', title: 'Pilne', priority: 'urgent' }),
+      task({ id: 'b', title: 'Średnie', priority: 'medium' }),
+    ]);
+    renderAll('all');
+
+    await user.click(screen.getAllByRole('button', { name: /Filtruj/ })[0]!);
+    await user.click(screen.getByRole('checkbox', { name: 'pilne' }));
+    expect(
+      screen.getByRole('button', { name: /Pokaż 1 zadanie/ }),
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Wyczyść' }));
+    expect(
+      screen.getByRole('button', { name: /Pokaż 2 zadania/ }),
+    ).toBeInTheDocument();
+  });
+
+  it('desktop search w topbarze filtruje listę po tytule', async () => {
+    const user = userEvent.setup();
+    seedWith([
+      task({ id: 'a', title: 'Analiza danych' }),
+      task({ id: 'b', title: 'Zakupy' }),
+    ]);
+    renderAll('all');
+
+    const search = screen.getByRole('searchbox', { name: 'Szukaj zadań' });
+    await user.type(search, 'Analiza');
+
+    await waitFor(() =>
+      expect(
+        within(screen.getByRole('table')).queryByText('Zakupy'),
+      ).not.toBeInTheDocument(),
+    );
+    expect(
+      within(screen.getByRole('table')).getByText('Analiza danych'),
     ).toBeInTheDocument();
   });
 });
