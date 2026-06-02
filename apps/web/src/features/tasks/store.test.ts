@@ -149,4 +149,33 @@ describe('selectVisibleTasks', () => {
     });
     expect(result[0]?.title).toBe('Beta'); // urgent najwyżej
   });
+
+  it('łączy filtry: status=todo + wyszukiwarka zawężają jednocześnie', () => {
+    let state = seedState();
+    state = addTask(
+      state,
+      makeInput({ title: 'Raport roczny', status: 'todo' }),
+    );
+    state = addTask(
+      state,
+      makeInput({ title: 'Raport miesięczny', status: 'done' }),
+    );
+    state = addTask(state, makeInput({ title: 'Spotkanie', status: 'todo' }));
+
+    const result = selectVisibleTasks(state, {
+      ...defaultViewFilters,
+      status: 'todo',
+      search: 'raport',
+    });
+    // tylko todo + zawierające „raport" → odpada done („Raport miesięczny") i „Spotkanie"
+    expect(result.map((t) => t.title)).toEqual(['Raport roczny']);
+  });
+
+  it('zwraca pustą listę, gdy żadne zadanie nie pasuje (wariant „brak wyników")', () => {
+    const result = selectVisibleTasks(fixture(), {
+      ...defaultViewFilters,
+      search: 'nieistniejące-zapytanie',
+    });
+    expect(result).toEqual([]);
+  });
 });
