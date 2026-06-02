@@ -17,10 +17,15 @@ import { OnboardingPage } from '@/pages/OnboardingPage';
 import { AppProvider } from '@/app/AppProvider';
 import { STORAGE_KEY, seedState } from '@/features/tasks/storage';
 
-/** Sonda pokazująca bieżącą ścieżkę — do asercji przekierowań gate'u. */
+/** Sonda pokazująca bieżącą ścieżkę + query — do asercji przekierowań i ?kat=. */
 function LocationProbe() {
   const location = useLocation();
-  return <span data-testid="path">{location.pathname}</span>;
+  return (
+    <>
+      <span data-testid="path">{location.pathname}</span>
+      <span data-testid="search">{location.search}</span>
+    </>
+  );
 }
 
 /** Mini-aplikacja odwzorowująca strukturę tras (gate + AppShell + onboarding). */
@@ -190,6 +195,39 @@ describe('AppShell — nawigacja i liczniki', () => {
     await user.click(within(tabbar).getByRole('link', { name: 'Ja' }));
     expect(screen.getByText('Ekran Ustawień')).toBeInTheDocument();
     expect(screen.getByTestId('path')).toHaveTextContent('/ustawienia');
+  });
+
+  it('desktop: pozycje KATEGORIE są klikalne i prowadzą do /wszystkie?kat=', async () => {
+    const user = userEvent.setup();
+    withUserAndTasks();
+    renderApp('/dzis');
+
+    // „Studia" w sekcji KATEGORIE to teraz link (a nie statyczny tekst).
+    const studiaLink = screen.getByRole('link', { name: /Kategoria Studia/ });
+    expect(studiaLink).toBeInTheDocument();
+
+    await user.click(studiaLink);
+    expect(screen.getByTestId('path')).toHaveTextContent('/wszystkie');
+    expect(screen.getByTestId('search')).toHaveTextContent('kat=studia');
+  });
+
+  it('desktop: kliknięta kategoria ma aktywny stan (aria-current) na /wszystkie?kat=', () => {
+    withUserAndTasks();
+    renderApp('/wszystkie?kat=studia');
+
+    const studiaLink = screen.getByRole('link', { name: /Kategoria Studia/ });
+    expect(studiaLink).toHaveAttribute('aria-current', 'page');
+
+    // Inna kategoria (Praca) nie jest aktywna przy ?kat=studia.
+    const pracaLink = screen.getByRole('link', { name: /Kategoria Praca/ });
+    expect(pracaLink).not.toHaveAttribute('aria-current');
+  });
+
+  it('desktop: bez ?kat= żadna kategoria nie jest aktywna', () => {
+    withUserAndTasks();
+    renderApp('/wszystkie');
+    const studiaLink = screen.getByRole('link', { name: /Kategoria Studia/ });
+    expect(studiaLink).not.toHaveAttribute('aria-current');
   });
 
   it('404 dla nieznanej trasy (z ustawionym imieniem)', () => {

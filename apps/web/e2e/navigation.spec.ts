@@ -34,6 +34,99 @@ test('desktop: sidebar (Widoki) — aktywny stan i przejścia', async ({
   await expect(page).toHaveURL(/\/zrobione$/);
 });
 
+test('desktop: pozycje KATEGORIE w sidebarze filtrują listę + aktywny stan + deep-link', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+
+  // Seed: po jednym zadaniu w Studiach i w Pracy (seedowe kategorie cat-*).
+  const STORAGE_KEY = 'wsb-piu-task-manager:state';
+  await page.addInitScript((key) => {
+    const raw = window.localStorage.getItem(key);
+    const state = raw ? JSON.parse(raw) : {};
+    window.localStorage.setItem(
+      key,
+      JSON.stringify({
+        ...state,
+        schemaVersion: 2,
+        user: { name: 'Kasia' },
+        categories: {
+          'cat-studia': {
+            id: 'cat-studia',
+            name: 'Studia',
+            color: 'category-green',
+          },
+          'cat-praca': {
+            id: 'cat-praca',
+            name: 'Praca',
+            color: 'category-blue',
+          },
+        },
+        tasks: {
+          s1: {
+            id: 's1',
+            title: 'Projekt zaliczeniowy',
+            priority: 'high',
+            status: 'todo',
+            categoryId: 'cat-studia',
+            createdAt: '2026-06-01T08:00:00.000Z',
+            updatedAt: '2026-06-01T08:00:00.000Z',
+          },
+          p1: {
+            id: 'p1',
+            title: 'Raport kwartalny',
+            priority: 'medium',
+            status: 'todo',
+            categoryId: 'cat-praca',
+            createdAt: '2026-06-01T09:00:00.000Z',
+            updatedAt: '2026-06-01T09:00:00.000Z',
+          },
+        },
+        ui: { theme: 'light' },
+      }),
+    );
+  }, STORAGE_KEY);
+
+  await page.goto('/dzis');
+
+  // Sekcja KATEGORIE — „Studia" jest linkiem (klikalna pozycja, nie tekst).
+  const studia = page.getByRole('link', { name: /Kategoria Studia/ });
+  await expect(studia).toBeVisible();
+  await studia.click();
+
+  // Nawigacja na /wszystkie?kat=studia, lista zawężona do Studiów.
+  await expect(page).toHaveURL(/\/wszystkie\?kat=studia$/);
+  const table = page.getByRole('table');
+  await expect(table.getByText('Projekt zaliczeniowy')).toBeVisible();
+  await expect(table.getByText('Raport kwartalny')).toBeHidden();
+
+  // Aktywny stan w sidebarze (aria-current) + zdejmowalny chip nad listą.
+  await expect(studia).toHaveAttribute('aria-current', 'page');
+  const chip = page.getByRole('button', {
+    name: /Usuń filtr kategorii: Studia/,
+  });
+  await expect(chip).toBeVisible();
+
+  // Zdjęcie chipa → pełna lista wraca.
+  await chip.click();
+  await expect(
+    page.getByRole('table').getByText('Raport kwartalny'),
+  ).toBeVisible();
+  await expect(studia).not.toHaveAttribute('aria-current', 'page');
+
+  // Deep-link / odświeżenie bezpośrednio na ?kat= działa (filtr z URL).
+  await page.goto('/wszystkie?kat=praca');
+  await expect(
+    page.getByRole('table').getByText('Raport kwartalny'),
+  ).toBeVisible();
+  await expect(
+    page.getByRole('table').getByText('Projekt zaliczeniowy'),
+  ).toBeHidden();
+  await expect(
+    page.getByRole('link', { name: /Kategoria Praca/ }),
+  ).toHaveAttribute('aria-current', 'page');
+});
+
 test('desktop: karta usera w sidebarze prowadzi do Ustawień', async ({
   page,
 }) => {

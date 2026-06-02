@@ -180,6 +180,55 @@ describe('AllTasksPage / TaskTable (P-E)', () => {
       within(screen.getByRole('table')).getByText('Zadanie pracowe'),
     ).toBeInTheDocument();
   });
+
+  it('deep-link ?kat= (filtr z sidebara) zaznacza kategorię też w FilterPanel — jedno źródło', async () => {
+    const user = userEvent.setup();
+    seedWith([
+      task({ id: 'a', title: 'Zadanie prywatne', categoryId: 'cat-prywatne' }),
+      task({ id: 'b', title: 'Zadanie pracowe', categoryId: 'cat-praca' }),
+    ]);
+    // Wejście jak po kliknięciu „Prywatne" w sidebarze (deep-link / odświeżenie).
+    renderAll('all', '/wszystkie?kat=prywatne');
+
+    // Chip kategorii nad listą obecny (kanał z URL).
+    expect(
+      screen.getByRole('button', { name: /Usuń filtr kategorii: Prywatne/ }),
+    ).toBeInTheDocument();
+
+    // Otwórz panel filtrów (desktop Popover) — kategoria Prywatne ma być
+    // pokazana jako zaznaczona, czyli sidebar i panel to ten sam filtr.
+    await user.click(screen.getAllByRole('button', { name: /Filtruj/ })[0]!);
+    const prywatneChip = screen.getByRole('checkbox', { name: /Prywatne/ });
+    expect(prywatneChip).toHaveAttribute('aria-checked', 'true');
+  });
+
+  it('odznaczenie kategorii z ?kat= w panelu zdejmuje filtr (migracja URL→panel, bez dublu)', async () => {
+    const user = userEvent.setup();
+    seedWith([
+      task({ id: 'a', title: 'Zadanie prywatne', categoryId: 'cat-prywatne' }),
+      task({ id: 'b', title: 'Zadanie pracowe', categoryId: 'cat-praca' }),
+    ]);
+    renderAll('all', '/wszystkie?kat=prywatne');
+
+    // Lista zawężona do Prywatne.
+    expect(
+      within(screen.getByRole('table')).queryByText('Zadanie pracowe'),
+    ).not.toBeInTheDocument();
+
+    // Otwórz panel i odznacz Prywatne → filtr znika, wraca pełna lista,
+    // a chip nad listą też znika (URL ?kat= zdjęty, nie ma drugiego kanału).
+    await user.click(screen.getAllByRole('button', { name: /Filtruj/ })[0]!);
+    await user.click(screen.getByRole('checkbox', { name: /Prywatne/ }));
+
+    await waitFor(() =>
+      expect(
+        within(screen.getByRole('table')).getByText('Zadanie pracowe'),
+      ).toBeInTheDocument(),
+    );
+    expect(
+      screen.queryByRole('button', { name: /Usuń filtr kategorii/ }),
+    ).not.toBeInTheDocument();
+  });
 });
 
 describe('AllTasksPage — filtry (P-G)', () => {
