@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { lazy, Suspense, useMemo, useState } from 'react';
 import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { AppShell } from '@/components/AppShell';
@@ -7,8 +7,16 @@ import { CategoryPills } from '@/components/CategoryPills';
 import { StatusTabs } from '@/components/StatusTabs';
 import { SortControl } from '@/components/SortControl';
 import { TaskList } from '@/components/TaskList';
-import { TaskFormDialog } from '@/components/TaskFormDialog';
 import { Button } from '@/components/ui/button';
+
+// Modal formularza ciągnie react-hook-form + zod resolver + kalendarz (react-day-picker).
+// Lazy-load: ten ciężki łańcuch ląduje w osobnym chunku i pobiera się dopiero,
+// gdy użytkownik pierwszy raz otworzy „Dodaj/Edytuj zadanie".
+const TaskFormDialog = lazy(() =>
+  import('@/components/TaskFormDialog').then((m) => ({
+    default: m.TaskFormDialog,
+  })),
+);
 import { useAppState } from '@/app/app-context';
 import {
   selectVisibleTasks,
@@ -147,13 +155,20 @@ export function TasksPage() {
         />
       </div>
 
-      <TaskFormDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        categories={categories}
-        task={editingTask}
-        onSubmit={handleSubmit}
-      />
+      {/* Montujemy lazy modal dopiero przy pierwszym otwarciu — wtedy pobiera się chunk.
+          Brak fallbacku wizualnego: chunk jest mały, a brak modalu na ułamek sekundy
+          jest mniej rozpraszający niż spinner. Po pobraniu Radix odtwarza animację open. */}
+      {dialogOpen ? (
+        <Suspense fallback={null}>
+          <TaskFormDialog
+            open={dialogOpen}
+            onOpenChange={setDialogOpen}
+            categories={categories}
+            task={editingTask}
+            onSubmit={handleSubmit}
+          />
+        </Suspense>
+      ) : null}
     </AppShell>
   );
 }

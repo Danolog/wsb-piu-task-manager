@@ -49,5 +49,14 @@ export default defineConfig([
       globals: globals.node,
     },
   },
+  {
+    // router.tsx to moduł konfiguracji tras (eksportuje `router`), nie moduł
+    // komponentu pod HMR. Definicje lazy() obok eksportu nie-komponentu wyzwalają
+    // regułę react-refresh, która tu nie ma zastosowania — wyłączamy ją punktowo.
+    files: ['src/app/router.tsx'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+    },
+  },
   prettier,
 ]);
