@@ -487,14 +487,14 @@ Jeden schemat → walidacja w formularzu → walidacja przy odczycie ze storage 
 - Keyboard nav: przejdź całą apkę bez myszki — wszystko musi działać
 
 **Definition of Done Etapu 5:**
-- [ ] Aplikacja spełnia min. zakres + 4–5 rozszerzonych funkcji
-- [ ] TypeScript strict, 0 any
-- [ ] ESLint clean
-- [ ] Husky blokuje złe commity
-- [ ] CI w GitHub Actions zielony
-- [ ] Lighthouse 90+
-- [ ] Deploy na Vercel/Netlify, link w README
-- [ ] 5+ unit testów + 1 e2e
+- [x] Aplikacja spełnia min. zakres + 4–5 rozszerzonych funkcji (9 ekranów, 12 funkcji)
+- [x] TypeScript strict, 0 any
+- [x] ESLint clean
+- [x] Husky blokuje złe commity
+- [x] CI w GitHub Actions zielony
+- [x] Lighthouse 90+ (faktycznie 100/100/100/100)
+- [ ] Deploy na Vercel/Netlify, link w README *(świadoma rezygnacja — tryb tylko lokalny, decyzja właściciela)*
+- [x] 5+ unit testów + 1 e2e (178 testów: 105 unit/komponent + 73 e2e)
 
 **Pułapki:**
 - **useEffect-driven development.** Każdy useEffect który synchronizuje state ze storage to code smell — zrób to w reducerze bezpośrednio.
@@ -569,11 +569,11 @@ Struktura rekomendowana:
 - Demo live działającej apki (backup: nagranie screencast jakby internet padł)
 
 **Definition of Done:**
-- [ ] PDF 2–4 strony w repo (`docs/Documentation.pdf`)
-- [ ] Slajdy w repo (`docs/Presentation.pptx`) — jeśli wymagane
-- [ ] README zaktualizowane z wszystkimi linkami (Figma, deploy, dokumentacja)
-- [ ] Tag `v1.0.0` na repo
-- [ ] `CHANGELOG.md` — bo to jest kultura pracy senior
+- [x] PDF 2–4 strony w repo (`docs/Etap7_Dokumentacja.html` — 4 strony A4, druk→PDF)
+- [ ] Slajdy w repo (`docs/Presentation.pptx`) — *jest konspekt `Etap7_Prezentacja.md`, pełne slajdy .pptx jeszcze nie*
+- [x] README zaktualizowane z wszystkimi linkami (Figma, deploy/tryb-lokalny, dokumentacja)
+- [ ] Tag `v1.0.0` na repo *(do nadania przez właściciela przy oddaniu)*
+- [x] `CHANGELOG.md` — bo to jest kultura pracy senior
 
 ---
 

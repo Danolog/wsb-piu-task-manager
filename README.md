@@ -19,7 +19,7 @@ Projekt realizowany wg harmonogramu z briefu (7 etapów). Szczegółowy roadmap,
 | 4 | Testy użyteczności (min. 3 użytkowników) | ⬜ planowany | — |
 | 5 | Implementacja frontend (React) | ✅ **ukończony (v2 — 9 ekranów)** | [`apps/web/`](./apps/web/), [`docs/Etap5_Implementation_Plan_v2.md`](./docs/Etap5_Implementation_Plan_v2.md) |
 | 6 | Testy końcowe i optymalizacja | ✅ **ukończony** | [`docs/Etap6_QA.md`](./docs/Etap6_QA.md) |
-| 7 | Prezentacja i dokumentacja (PDF 2–4 str.) | 🔄 w toku | [`Etap7_Dokumentacja.md`](./Etap7_Dokumentacja.md), [`Etap7_Prezentacja.md`](./Etap7_Prezentacja.md) |
+| 7 | Prezentacja i dokumentacja (PDF 2–4 str.) | ✅ dokumentacja i prezentacja gotowe (oddanie czeka) | [`Etap7_Dokumentacja.md`](./Etap7_Dokumentacja.md), [`Etap7_Prezentacja.md`](./Etap7_Prezentacja.md) |
 
 > **Uwaga dot. kolejności:** w briefie testy użyteczności (Etap 4) są **na prototypie**, przed implementacją. Wcześniejsza wersja README miała je po implementacji — obecny plan trzyma się briefu, bo testowanie na Figmie jest tańsze od przerabiania działającego kodu.
 
