@@ -1,60 +1,104 @@
 @import 'tailwindcss';
 
 /*
-  Zmienne shadcn/ui — neutralna baza (P0).
-  W paczce P2 wartości kolorów zostaną nadpisane tokenami Figmy (beż/krem).
+  ========================================================================
+  Design tokens — Figma Hi-Fi v0.1 (Etap5 plan, sekcja 3.4), mapowane 1:1.
+  Paleta beż/krem (light) + ciemny wariant zachowujący kontrast WCAG AA.
+  Zmienne shadcn/ui (--background, --primary, ...) wskazują na te tokeny,
+  więc komponenty shadcn dziedziczą wygląd z Figmy, nie domyślny neutralny.
+  ========================================================================
 */
 
 :root {
-  --radius: 0.65rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  /* --- Tokeny semantyczne (Figma, light) --- */
+  --canvas: #f4efe4; /* tło aplikacji (beż) */
+  --surface: #fcfaf4; /* powierzchnia pól / sidebar (krem) */
+  --surface-alt: #efe9db; /* powierzchnia alternatywna */
+  --ink: #221f19; /* tekst główny */
+  --ink-soft: #5f5849; /* tekst drugorzędny */
+  --ink-muted: #6e6757; /* tekst wyciszony */
+  --line: #ddd6c5; /* obwódki / linie */
+  --cta-bg: #221f19; /* tło CTA */
+  --cta-text: #f7f3e9; /* tekst na CTA */
+  --danger: #b23a2e; /* akcja destrukcyjna */
+
+  /* Kolory kategorii (semantyczne — swap w dark) */
+  --category-green: #2f6f5e;
+  --category-blue: #3a5f8a;
+  --category-purple: #6a4f8a;
+  --category-orange: #b5722e;
+  --category-red: #b23a2e;
+
+  /* --- Promienie (Figma) --- */
+  --radius-field: 11px;
+  --radius-nav: 10px;
+  --radius-pill: 999px;
+  --radius-segment: 11px;
+  --radius: 11px; /* domyślny używany przez shadcn */
+
+  /* --- Zmienne shadcn/ui → tokeny semantyczne --- */
+  --background: var(--canvas);
+  --foreground: var(--ink);
+  --card: var(--surface);
+  --card-foreground: var(--ink);
+  --popover: var(--surface);
+  --popover-foreground: var(--ink);
+  --primary: var(--cta-bg);
+  --primary-foreground: var(--cta-text);
+  --secondary: var(--surface-alt);
+  --secondary-foreground: var(--ink);
+  --muted: var(--surface-alt);
+  --muted-foreground: var(--ink-muted);
+  --accent: var(--surface-alt);
+  --accent-foreground: var(--ink);
+  --destructive: var(--danger);
+  --destructive-foreground: var(--cta-text);
+  --border: var(--line);
+  --input: var(--line);
+  --ring: var(--ink-soft);
 }
 
 [data-theme='dark'] {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+  /* Ciemny wariant: ciemne tło, jasny ink; kontrast AA zachowany. */
+  --canvas: #1c1a15; /* ciemny beż-brąz */
+  --surface: #26231c; /* powierzchnia */
+  --surface-alt: #322e25; /* powierzchnia alternatywna */
+  --ink: #f4efe4; /* jasny tekst (odwrócony canvas) */
+  --ink-soft: #c4bca8;
+  --ink-muted: #a39c8a;
+  --line: #46412f; /* obwódki ciemniejsze */
+  --cta-bg: #f4efe4; /* CTA jasne na ciemnym */
+  --cta-text: #221f19;
+  --danger: #e07567; /* rozjaśniony, by trzymał kontrast na ciemnym tle */
+
+  /* Kategorie — rozjaśnione warianty pod ciemne tło */
+  --category-green: #5fb39c;
+  --category-blue: #7fa6d6;
+  --category-purple: #b095d6;
+  --category-orange: #e0a25f;
+  --category-red: #e07567;
 }
 
 @theme inline {
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  /* Mapowanie tokenów na klasy Tailwind (bg-canvas, text-ink, border-line, ...) */
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-alt: var(--surface-alt);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-muted: var(--ink-muted);
+  --color-line: var(--line);
+  --color-cta: var(--cta-bg);
+  --color-cta-foreground: var(--cta-text);
+  --color-danger: var(--danger);
+
+  --color-category-green: var(--category-green);
+  --color-category-blue: var(--category-blue);
+  --color-category-purple: var(--category-purple);
+  --color-category-orange: var(--category-orange);
+  --color-category-red: var(--category-red);
+
+  /* Mapowanie zmiennych shadcn na utility kolory */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -74,15 +118,25 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+
+  /* Promienie */
+  --radius-sm: 8px;
+  --radius-md: var(--radius-nav);
+  --radius-lg: var(--radius-field);
+  --radius-xl: 16px;
+
+  /* Typografia */
   --font-sans:
     'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
     'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  --font-handwriting: 'Caveat', cursive;
+  --font-mono: 'Space Mono', ui-monospace, 'SFMono-Regular', monospace;
 }
 
 @layer base {
   * {
     border-color: var(--border);
-    outline-color: color-mix(in oklch, var(--ring) 50%, transparent);
+    outline-color: color-mix(in srgb, var(--ring) 50%, transparent);
   }
 
   html,
@@ -97,5 +151,6 @@
     color: var(--foreground);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
 }

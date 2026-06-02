@@ -1,12 +1,13 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import { TasksPage } from './TasksPage';
+import { renderWithProviders } from '@/test/render';
 
-describe('TasksPage (smoke P0)', () => {
+describe('TasksPage (smoke)', () => {
   it('renderuje nagłówek listy zadań', () => {
-    render(<TasksPage />);
+    renderWithProviders(<TasksPage />);
     expect(
-      screen.getByRole('heading', { name: 'Zadania' }),
+      screen.getByRole('heading', { name: 'Lista zadań' }),
     ).toBeInTheDocument();
   });
 });

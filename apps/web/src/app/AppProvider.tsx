@@ -5,13 +5,20 @@ import { load, save } from '@/features/tasks/storage';
 import { AppContext } from './app-context';
 
 /** Wylicza efektywny motyw ('system' → preferencja OS) i ustawia data-theme na <html>. */
+function prefersDarkScheme(): boolean {
+  if (
+    typeof window === 'undefined' ||
+    typeof window.matchMedia !== 'function'
+  ) {
+    return false;
+  }
+  return window.matchMedia('(prefers-color-scheme: dark)').matches;
+}
+
 function applyTheme(theme: Theme): void {
   if (typeof document === 'undefined') return;
-  const prefersDark =
-    typeof window !== 'undefined' &&
-    window.matchMedia('(prefers-color-scheme: dark)').matches;
   const effective =
-    theme === 'system' ? (prefersDark ? 'dark' : 'light') : theme;
+    theme === 'system' ? (prefersDarkScheme() ? 'dark' : 'light') : theme;
   document.documentElement.setAttribute('data-theme', effective);
 }
 
@@ -27,7 +34,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // Synchronizacja motywu z <html>; reaguje na zmianę preferencji OS w trybie 'system'.
   useEffect(() => {
     applyTheme(state.ui.theme);
-    if (state.ui.theme !== 'system' || typeof window === 'undefined') {
+    if (
+      state.ui.theme !== 'system' ||
+      typeof window === 'undefined' ||
+      typeof window.matchMedia !== 'function'
+    ) {
       return;
     }
     const media = window.matchMedia('(prefers-color-scheme: dark)');
