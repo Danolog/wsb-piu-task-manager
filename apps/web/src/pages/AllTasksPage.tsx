@@ -127,11 +127,34 @@ export function AllTasksPage({ preset }: AllTasksPageProps) {
 
   const filtersActive = hasActiveFilters(filters);
 
+  // Spójność z filtrem z sidebara: kategoria wskazana w URL (?kat=, np. klik
+  // „Studia" w lewym panelu) jest tym samym filtrem co zaznaczenie kategorii w
+  // FilterPanel. Pokazujemy ją jako zaznaczoną w panelu (jedno źródło prawdy w
+  // UI). Gdy user przełącza kategorie w panelu, migrujemy filtr z URL do stanu
+  // panelu, żeby nie mieć dwóch konkurujących znaczników tej samej kategorii.
+  const panelValue: ListFilterState =
+    activeCategory && !filters.categoryIds.includes(activeCategory.id)
+      ? { ...filters, categoryIds: [...filters.categoryIds, activeCategory.id] }
+      : filters;
+
+  const handlePanelChange = (next: ListFilterState) => {
+    // Gdy filtr przyszedł z URL (?kat=), pierwsza interakcja w panelu przejmuje
+    // go: panel widzi kategorię jako zaznaczoną (panelValue), więc `next` już
+    // niesie pełną decyzję usera. Zapisujemy `next` do stanu panelu i zdejmujemy
+    // ?kat=, żeby ta sama kategoria nie była trzymana w dwóch kanałach naraz.
+    setFilters(next);
+    if (activeCategory) {
+      const params = new URLSearchParams(searchParams);
+      params.delete('kat');
+      setSearchParams(params, { replace: true });
+    }
+  };
+
   const renderPanel = (onApply: () => void) => (
     <FilterPanel
       categories={categories}
-      value={filters}
-      onChange={setFilters}
+      value={panelValue}
+      onChange={handlePanelChange}
       count={visibleTasks.length}
       onApply={onApply}
     />

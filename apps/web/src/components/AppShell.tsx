@@ -1,5 +1,11 @@
 import { useMemo, type ReactNode } from 'react';
-import { NavLink, Outlet } from 'react-router-dom';
+import {
+  Link,
+  NavLink,
+  Outlet,
+  useLocation,
+  useSearchParams,
+} from 'react-router-dom';
 import {
   ListTodo,
   CalendarRange,
@@ -94,10 +100,37 @@ function viewLinkClass(active: boolean): string {
   );
 }
 
+/**
+ * Slug kategorii dla parametru `?kat=` — id bez prefiksu `cat-`.
+ * Lustrzane do `categoryIdFromParam` w AllTasksPage (`cat-${slug}`): seed
+ * 'cat-studia' → 'studia', a kategorie usera 'cat-<uuid>' → '<uuid>'.
+ * Wspólny, jeden mechanizm filtra — link sidebara, deep-link i chip czytają to samo.
+ */
+function categorySlug(categoryId: string): string {
+  return categoryId.replace(/^cat-/, '');
+}
+
+function categoryLinkClass(active: boolean): string {
+  return cn(
+    'flex items-center justify-between gap-2.5 rounded-[var(--radius-nav)] px-3 py-1.5 text-[15px] transition-colors',
+    'focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none',
+    active
+      ? 'bg-surface-alt font-medium text-ink'
+      : 'text-ink-soft hover:bg-surface-alt hover:text-ink',
+  );
+}
+
 /** Lewy sidebar (desktop ≥ md): logo, WIDOKI z licznikami, KATEGORIE, karta usera. */
 function Sidebar() {
   const { state } = useAppState();
   const today = todayISO();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+
+  // Kategoria aktywna w sidebarze = jesteśmy na /wszystkie z pasującym ?kat=.
+  // (NavLink.isActive porównuje tylko pathname, więc rozróżniamy kategorie sami.)
+  const activeCatSlug =
+    location.pathname === '/wszystkie' ? searchParams.get('kat') : null;
 
   // Liczniki dla pozycji WIDOKI — z tego samego selektora co listy widoków.
   const counts = useMemo(() => {
@@ -166,26 +199,39 @@ function Sidebar() {
             Kategorie
           </p>
           <ul className="flex flex-col gap-1">
-            {categories.map((category) => (
-              <li
-                key={category.id}
-                className="flex items-center justify-between gap-2.5 px-3 py-1.5 text-[15px] text-ink-soft"
-              >
-                <span className="flex items-center gap-2.5">
-                  <span
-                    className={cn(
-                      'size-2.5 shrink-0 rounded-full',
-                      categoryDotClass(category.color),
-                    )}
-                    aria-hidden="true"
-                  />
-                  {category.name}
-                </span>
-                <span className="text-sm text-ink-muted tabular-nums">
-                  {categoryCounts[category.id] ?? 0}
-                </span>
-              </li>
-            ))}
+            {categories.map((category) => {
+              const slug = categorySlug(category.id);
+              const active = activeCatSlug === slug;
+              return (
+                <li key={category.id}>
+                  {/* Link (nie NavLink): wszystkie kategorie celują w /wszystkie,
+                      więc NavLink uznałby każdą za aktywną po samym pathname.
+                      Aktywność rozróżniamy po ?kat= i ustawiamy aria-current sami. */}
+                  <Link
+                    to={`/wszystkie?kat=${encodeURIComponent(slug)}`}
+                    className={categoryLinkClass(active)}
+                    aria-current={active ? 'page' : undefined}
+                    aria-label={`Kategoria ${category.name}, liczba zadań: ${
+                      categoryCounts[category.id] ?? 0
+                    }`}
+                  >
+                    <span className="flex items-center gap-2.5">
+                      <span
+                        className={cn(
+                          'size-2.5 shrink-0 rounded-full',
+                          categoryDotClass(category.color),
+                        )}
+                        aria-hidden="true"
+                      />
+                      {category.name}
+                    </span>
+                    <span className="text-sm text-ink-muted tabular-nums">
+                      {categoryCounts[category.id] ?? 0}
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
         </div>
       ) : null}
