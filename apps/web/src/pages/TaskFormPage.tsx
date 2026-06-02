@@ -46,7 +46,13 @@ export function TaskFormPage() {
         onSubmit={handleSubmit}
         submitLabel="Dodaj zadanie"
         footerSlot={
-          <Button type="button" variant="ghost" onClick={() => navigate(-1)}>
+          <Button
+            type="button"
+            variant="outline"
+            // Wymiary „Anuluj" wg Figmy D 133-2 (btn): obwódka, px-18 py-12, radius pill, 14px semibold.
+            className="rounded-[var(--radius-pill)] px-[18px] py-[12px] text-sm font-semibold tracking-[0.1px] text-ink-muted"
+            onClick={() => navigate(-1)}
+          >
             Anuluj
           </Button>
         }

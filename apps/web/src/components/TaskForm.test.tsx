@@ -120,4 +120,15 @@ describe('TaskForm', () => {
     renderForm({ footerSlot: <button type="button">Anuluj</button> });
     expect(screen.getByRole('button', { name: 'Anuluj' })).toBeInTheDocument();
   });
+
+  it('pola edytowalne mają białe tło (token bg-field, wierność Figmie D 133-2)', () => {
+    renderForm();
+    // Tytuł i Notatka to inputy edytowalne — w Figmie aktywne pole jest białe (--field).
+    expect(screen.getByPlaceholderText('Wpisz tytuł zadania...')).toHaveClass(
+      'bg-field',
+    );
+    expect(
+      screen.getByPlaceholderText('Dodaj szczegóły, linki...'),
+    ).toHaveClass('bg-field');
+  });
 });

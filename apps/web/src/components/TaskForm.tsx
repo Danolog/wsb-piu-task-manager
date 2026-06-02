@@ -262,8 +262,13 @@ export function TaskForm({
         ) : null}
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
-        <Button type="submit">
+      {/* Stopka: CTA + footerSlot. pt-2 = odstęp nad stopką wg Figmy (dfoot pt-8). */}
+      <div className="flex flex-wrap items-center gap-3 pt-2">
+        <Button
+          type="submit"
+          // Wymiary CTA wg Figmy D 133-2 (btn): px-18 py-12, radius pill, text 14px semibold.
+          className="rounded-[var(--radius-pill)] px-[18px] py-[12px] text-sm font-semibold tracking-[0.1px]"
+        >
           {submitLabel ?? (isEdit ? 'Zapisz zmiany' : 'Dodaj zadanie')}
         </Button>
         {footerSlot}

@@ -54,7 +54,7 @@ export function SearchBar({
         onChange={(e) => setLocal(e.target.value)}
         placeholder="Szukaj zadań..."
         aria-label="Szukaj zadań"
-        className="h-9 pr-9 pl-8"
+        className="py-2 pr-9 pl-8"
       />
       {local ? (
         <Button

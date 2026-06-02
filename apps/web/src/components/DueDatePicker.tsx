@@ -62,8 +62,11 @@ export function DueDatePicker({
             aria-labelledby={
               labelledBy && id ? `${labelledBy} ${id}` : labelledBy
             }
+            // Wysokość/padding zrównane z polami formularza (Figma D 133-2: pole Termin
+            // ma te same wymiary co Tytuł/Notatka — px-15 py-13, radius 11px, border 1.5px).
+            // Tło kremowe (surface), nie białe — w Figmie to nieedytowalny trigger, nie pole tekstowe.
             className={cn(
-              'h-9 flex-1 justify-start gap-2 font-normal',
+              'h-auto flex-1 justify-start gap-2 rounded-lg border-[1.5px] bg-surface px-[15px] py-[13px] text-[15px] font-normal',
               !selected && 'text-ink-muted',
             )}
           >

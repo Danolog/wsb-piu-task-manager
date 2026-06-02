@@ -14,6 +14,7 @@
   --canvas: #f4efe4; /* tło aplikacji (beż) */
   --surface: #fcfaf4; /* powierzchnia pól / sidebar (krem) */
   --surface-alt: #efe9db; /* powierzchnia alternatywna */
+  --field: #ffffff; /* tło edytowalnego pola formularza (Figma D 133-2: aktywne pole białe) */
   --ink: #221f19; /* tekst główny */
   --ink-soft: #5f5849; /* tekst drugorzędny */
   --ink-muted: #6e6757; /* tekst wyciszony */
@@ -64,6 +65,7 @@
   --canvas: #1c1a15; /* ciemny beż-brąz */
   --surface: #26231c; /* powierzchnia */
   --surface-alt: #322e25; /* powierzchnia alternatywna */
+  --field: #2e2a21; /* tło pola w dark — NIE białe; jaśniejsze od surface dla wyodrębnienia pola, kontrast ink (#f4efe4) ≈ 11:1 (AA+) */
   --ink: #f4efe4; /* jasny tekst (odwrócony canvas) */
   --ink-soft: #c4bca8;
   --ink-muted: #a39c8a;
@@ -86,6 +88,7 @@
   --color-canvas: var(--canvas);
   --color-surface: var(--surface);
   --color-surface-alt: var(--surface-alt);
+  --color-field: var(--field);
   --color-ink: var(--ink);
   --color-ink-soft: var(--ink-soft);
   --color-ink-muted: var(--ink-muted);

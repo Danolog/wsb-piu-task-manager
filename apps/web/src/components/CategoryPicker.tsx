@@ -37,7 +37,8 @@ export function CategoryPicker({
             aria-checked={active}
             onClick={() => onChange(active ? undefined : category.id)}
             className={cn(
-              'inline-flex items-center gap-1.5 rounded-[var(--radius-pill)] border px-3 py-1.5 text-[13px] transition-colors',
+              // Wymiary chipa wg Figmy D 133-2 (chip): px-12 py-7, gap-6, dot 8px, text 13px, radius pill.
+              'inline-flex items-center gap-1.5 rounded-[var(--radius-pill)] border px-3 py-[7px] text-[13px] transition-colors',
               'focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none',
               active
                 ? 'border-ink bg-surface-alt font-medium text-ink'

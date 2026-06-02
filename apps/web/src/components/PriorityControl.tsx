@@ -10,15 +10,6 @@ const PRIORITY_LABEL: Record<Priority, string> = {
   urgent: 'Pilny',
 };
 
-// Kolor akcentu priorytetu (klasa tła aktywnego segmentu).
-const PRIORITY_ACTIVE: Record<Priority, string> = {
-  low: 'data-[state=on]:bg-category-green/15 data-[state=on]:text-category-green',
-  medium:
-    'data-[state=on]:bg-category-blue/15 data-[state=on]:text-category-blue',
-  high: 'data-[state=on]:bg-category-orange/15 data-[state=on]:text-category-orange',
-  urgent: 'data-[state=on]:bg-danger/15 data-[state=on]:text-danger',
-};
-
 export interface PriorityControlProps {
   value?: Priority;
   onChange?: (value: Priority) => void;
@@ -43,7 +34,8 @@ export const PriorityControl = forwardRef<HTMLDivElement, PriorityControlProps>(
         ref={ref}
         id={id}
         type="single"
-        variant="outline"
+        // Wariant default (nie outline): obramowanie nosi wrapper grupy, jak w Figmie
+        // D 133-2 (seg). Aktywny segment dostaje białe tło + obwódkę przez PRIORITY_ACTIVE.
         value={value ?? ''}
         onValueChange={(next) => {
           // ToggleGroup single zwraca '' przy odznaczeniu — ignorujemy, by zawsze trzymać wartość.
@@ -52,7 +44,9 @@ export const PriorityControl = forwardRef<HTMLDivElement, PriorityControlProps>(
         onBlur={onBlur}
         aria-label={aria['aria-labelledby'] ? undefined : 'Priorytet'}
         aria-labelledby={aria['aria-labelledby']}
-        className="w-full"
+        // Wrapper segmentu wg Figmy: tło surface-alt, obwódka line, padding 4px, gap 4px, radius 11px.
+        spacing={4}
+        className="w-full rounded-[var(--radius-segment)] border border-line bg-surface-alt p-1"
       >
         {PRIORITIES.map((priority) => (
           <ToggleGroupItem
@@ -61,7 +55,12 @@ export const PriorityControl = forwardRef<HTMLDivElement, PriorityControlProps>(
             aria-label={PRIORITY_LABEL[priority]}
             data-priority={priority}
             name={name}
-            className={cn('flex-1', PRIORITY_ACTIVE[priority])}
+            // Każdy segment: rozciągnięty, py-9, radius 8px, text 13px (Figma D 133-2 opt).
+            // Aktywny segment: białe tło + obwódka + ciemny tekst (Figma — bez akcentu koloru).
+            className={cn(
+              'flex-1 rounded-[8px] py-[9px] text-[13px] text-ink-muted',
+              'data-[state=on]:border data-[state=on]:border-line data-[state=on]:bg-field data-[state=on]:text-ink',
+            )}
           >
             {PRIORITY_LABEL[priority]}
           </ToggleGroupItem>
