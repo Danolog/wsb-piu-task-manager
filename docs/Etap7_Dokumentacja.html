@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WSB-PIU Task Manager — dokumentacja projektowa</title>
+<style>
+  :root {
+    --ink: #221f19;
+    --ink-soft: #5f5849;
+    --muted: #6e6757;
+    --line: #ddd6c5;
+    --canvas: #f4efe4;
+    --surface: #fcfaf4;
+    --accent: #2f6f5e;
+    --accent-bg: rgba(47, 111, 94, 0.10);
+    --danger: #b23a2e;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: var(--ink);
+    background: #e7e1d4;
+    line-height: 1.5;
+    font-size: 11pt;
+  }
+  .page {
+    width: 210mm;
+    min-height: 297mm;
+    padding: 18mm 18mm 16mm;
+    margin: 8mm auto;
+    background: var(--surface);
+    box-shadow: 0 2px 12px rgba(0,0,0,.12);
+  }
+  h1 {
+    font-size: 21pt;
+    margin: 0 0 2pt;
+    letter-spacing: -0.3pt;
+  }
+  .subtitle { color: var(--muted); font-size: 10pt; margin: 0 0 14pt; }
+  h2 {
+    font-size: 13.5pt;
+    color: var(--accent);
+    border-bottom: 2px solid var(--line);
+    padding-bottom: 4pt;
+    margin: 0 0 10pt;
+  }
+  h3 { font-size: 11.5pt; margin: 14pt 0 5pt; }
+  p { margin: 0 0 8pt; }
+  ul { margin: 0 0 8pt; padding-left: 18pt; }
+  li { margin-bottom: 3pt; }
+  strong { color: var(--ink); }
+  .lead { font-size: 10.2pt; color: var(--ink-soft); }
+  .glossary {
+    background: var(--accent-bg);
+    border-left: 3px solid var(--accent);
+    padding: 8pt 12pt;
+    font-size: 9.2pt;
+    color: var(--ink-soft);
+    margin-bottom: 14pt;
+    border-radius: 4px;
+  }
+  .glossary b { color: var(--ink); }
+  .persona {
+    border: 1.5px solid var(--line);
+    border-radius: 8px;
+    padding: 9pt 12pt;
+    margin-bottom: 8pt;
+    background: var(--canvas);
+  }
+  .persona .name { font-weight: 700; color: var(--accent); }
+  .flow {
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+    font-size: 8.4pt;
+    background: var(--canvas);
+    border: 1.5px solid var(--line);
+    border-radius: 8px;
+    padding: 10pt 12pt;
+    white-space: pre;
+    overflow-x: auto;
+    line-height: 1.35;
+    margin-bottom: 12pt;
+  }
+  ol.decisions { padding-left: 16pt; }
+  ol.decisions > li { margin-bottom: 8pt; }
+  .note {
+    border: 1.5px dashed var(--danger);
+    background: #fbeeec;
+    border-radius: 8px;
+    padding: 9pt 12pt;
+    font-size: 9.6pt;
+    color: var(--ink-soft);
+  }
+  .note b { color: var(--danger); }
+  table { width: 100%; border-collapse: collapse; font-size: 9.4pt; margin-bottom: 8pt; }
+  th, td { border: 1px solid var(--line); padding: 5pt 7pt; text-align: left; vertical-align: top; }
+  th { background: var(--canvas); font-weight: 700; }
+  .badge {
+    display: inline-block;
+    background: var(--accent-bg);
+    color: var(--accent);
+    border-radius: 999px;
+    padding: 1pt 8pt;
+    font-size: 8.4pt;
+    font-weight: 700;
+  }
+  .links a { color: var(--accent); word-break: break-all; }
+  .todo { color: var(--danger); font-style: italic; }
+  .pagefoot { color: var(--muted); font-size: 8.2pt; text-align: right; margin-top: 10pt; border-top: 1px solid var(--line); padding-top: 5pt; }
+  @media print {
+    body { background: #fff; }
+    .page { margin: 0; box-shadow: none; width: auto; min-height: auto; page-break-after: always; }
+    .page:last-child { page-break-after: auto; }
+    @page { size: A4; margin: 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- STRONA 1 -->
+<section class="page">
+  <h1>WSB-PIU Task Manager</h1>
+  <p class="subtitle">Dokumentacja projektowa &middot; Projektowanie Interfejsów Użytkownika &middot; WSB Merito, sem. 4 &middot; prowadzący: mgr inż. Bartłomiej Kizielewicz &middot; autor: Darek</p>
+
+  <div class="glossary">
+    <b>Słownik (dla osób nietechnicznych):</b>
+    <b>frontend</b> — warstwa aplikacji, którą widzi i klika użytkownik;
+    <b>modal</b> — okienko nakładane na ekran (formularz), bez przechodzenia na osobną stronę;
+    <b>user flow</b> — ścieżka kroków, którą przechodzi użytkownik do celu;
+    <b>Hi-Fi</b> — szczegółowy projekt wizualny w docelowych kolorach i czcionkach (Figma);
+    <b>design token</b> — nazwana wartość projektu (np. „kolor tła"), używana spójnie w całej apce;
+    <b>localStorage</b> — pamięć przeglądarki, dane zostają po zamknięciu karty, bez logowania;
+    <b>responsywność</b> — dopasowanie układu do szerokości ekranu;
+    <b>a11y</b> — dostępność dla osób z niepełnosprawnościami.
+  </div>
+
+  <h2>1 &middot; Problem i persony</h2>
+
+  <h3>Problem projektowy</h3>
+  <p>Narzędzia do zarządzania zadaniami są albo <strong>zbyt rozbudowane</strong> (Jira, Trello, Asana — krzywa nauki, przytłaczające), albo <strong>zbyt prymitywne</strong> (karteczki, notatki w telefonie — gubią się, brak kategorii i terminów). Brakuje rozwiązania <strong>pośrodku</strong>: lekkiego i intuicyjnego, w którym dodajemy zadanie w kilka sekund, a mimo to mamy kategorie, priorytety i terminy.</p>
+
+  <h3>Persony użytkowników (Etap 1)</h3>
+
+  <div class="persona">
+    <span class="name">Kasia, 22 — studentka informatyki.</span>
+    Wiele projektów zespołowych i kolokwiów naraz, korzysta głównie z <strong>telefonu, między zajęciami</strong>. Karteczki gubi, notatki to bałagan, Trello za rozbudowane.
+    <br><strong>Kluczowa potrzeba:</strong> szybkość i mobilność — dodać zadanie w 3 sekundy, jedną ręką.
+  </div>
+
+  <div class="persona">
+    <span class="name">Marek, 28 — specjalista ds. marketingu, projekt po godzinach.</span>
+    Świadomie nie miesza spraw prywatnych z firmowymi narzędziami (prywatność, work-life balance). Potrzebuje jednego miejsca na side-project i sprawy życiowe.
+    <br><strong>Kluczowa potrzeba:</strong> kategorie (prywatne vs projekt), priorytety, terminy, filtrowanie.
+  </div>
+
+  <div class="persona">
+    <span class="name">Anna, 58 — nauczycielka.</span>
+    Sprawdziany, dyżury, dom. Próbowała aplikacji do zadań, ale były „za napakowane" — za dużo opcji, za małe przyciski.
+    <br><strong>Kluczowa potrzeba:</strong> prostota, czytelność, duże elementy klikalne, jasne komunikaty.
+  </div>
+
+  <div class="pagefoot">WSB-PIU Task Manager — dokumentacja &middot; strona 1 / 4</div>
+</section>
+
+<!-- STRONA 2 -->
+<section class="page">
+  <h2>2 &middot; Główny user flow i kluczowe decyzje projektowe</h2>
+
+  <h3>Główny przepływ użytkownika</h3>
+  <div class="flow">Otwarcie aplikacji (bez logowania — dane w localStorage)
+        │
+        ▼
+Lista zadań  ───────────────────────────────────────────────┐
+  • grupowanie po kategorii (kolorowe nagłówki)              │
+  • sekcja „Dzisiaj" na górze                                │ filtr / wyszukiwanie /
+  • wyraźne statusy (do zrobienia ↔ zrobione)                │ sortowanie — in-place
+        │                                                    │ (bez przeładowania)
+        ├──► „+ Dodaj zadanie" → MODAL formularza ───────────┘
+        │       tytuł + termin od razu; priorytet / kategoria /
+        │       opis pod „Więcej opcji" → Zapisz / „Zapisz i nowe"
+        │
+        ├──► klik w checkbox → wykonane (check + przekreślenie + przyciemnienie)
+        │
+        ├──► edycja → ten sam MODAL (wypełniony danymi)
+        │
+        └──► usunięcie → potwierdzenie → toast „Cofnij" (5 s)
+
+Ustawienia (/settings): motyw (jasny / ciemny / system) + zarządzanie kategoriami</div>
+
+  <h3>5 kluczowych decyzji projektowych (z uzasadnieniem)</h3>
+  <ol class="decisions">
+    <li><strong>Dodawanie/edycja w modalu, nie na osobnej stronie.</strong> Z journey map: Marek dodaje zadania <strong>w kontekście listy</strong>, Anna po zapisie wraca do <strong>identycznego widoku</strong>. Modal zamyka pętlę bez nawigacji. (ADR-0001/0002, plan Etap 5)</li>
+    <li><strong>Status dwukanałowo, nie samym kolorem.</strong> Zrobione = zielony check <strong>+ przekreślenie + przyciemnienie</strong>. Powód: ~8% mężczyzn nie rozróżnia czerwieni/zieleni; Anna czyta status z 1 m. Zgodne z WCAG 1.4.1.</li>
+    <li><strong>Formularz z progresywnym ujawnianiem.</strong> Na starcie tylko <strong>tytuł + termin</strong>; priorytet/kategoria/opis pod „Więcej opcji". Godzi prostotę (Anna) z kontrolą (Marek) jednym komponentem. Etykiety nad polami, komunikaty błędów po ludzku.</li>
+    <li><strong>Mobile-first, duże elementy klikalne.</strong> Układ najpierw pod telefon (Kasia), sidebar zwija się w wysuwane menu. Przyciski min. 44×44 px, checkbox min. 32×32 px, stałe miejsce zapisu na dole.</li>
+    <li><strong>Stan na useReducer + Context, dane w localStorage; stan widoku osobno.</strong> Auto-zapis po każdej akcji, bez przycisku „Zapisz" i bez logowania. Filtry/wyszukiwanie/sortowanie świadomie poza zapisem (czysta funkcja <em>selectVisibleTasks</em>), by filtrowanie było płynne. (ADR-0003)</li>
+  </ol>
+
+  <p class="note"><b>Bonus (most projekt → kod):</b> kolory, czcionki i kształty z prototypu Hi-Fi (Figma) zmapowano <strong>1:1</strong> na design tokeny (mechanizm <em>@theme</em> w Tailwind), m.in. tło #f4efe4, tekst #221f19, czcionka Inter. Aplikacja wygląda jak prototyp, a tryb ciemny to podmiana tokenów.</p>
+
+  <div class="pagefoot">WSB-PIU Task Manager — dokumentacja &middot; strona 2 / 4</div>
+</section>
+
+<!-- STRONA 3 -->
+<section class="page">
+  <h2>3 &middot; Testy użyteczności (metodologia + wnioski)</h2>
+
+  <h3>Metodologia</h3>
+  <p>Zaprojektowano kompletny zestaw testów (<em>Etap4_Usability_Tests.md</em>): moderowany test typu <strong>think-aloud</strong> (myślenie na głos) na <strong>działającej aplikacji</strong>, z <strong>3 uczestnikami</strong> wg person (student ~20 / pracujący ~25–35 / osoba mniej techniczna 50+). Podstawa: badania Jakoba Nielsena — <strong>3 użytkowników wykrywa ok. 60–75% problemów użyteczności</strong>; liczy się różnorodność profili, nie wielkość próby.</p>
+  <p><strong>Scenariusz (5 zadań):</strong> (Z1) dodaj zadanie z priorytetem i kategorią, (Z2) oznacz wykonane, (Z3) filtruj po kategorii, (Z4) zmień termin, (Z5) włącz tryb ciemny. Mierzone: sukces zadania (1/0), orientacyjny czas, liczba błędów, kwestionariusz <strong>SUS</strong> (System Usability Scale, 0–100) i cytaty jakościowe.</p>
+
+  <h3>Wnioski z testów</h3>
+  <p class="note"><b>[PLACEHOLDER — do uzupełnienia po sesjach z Etapu 4.]</b><br>
+  Sesje przeprowadza właściciel projektu na działającej aplikacji. Po ich wykonaniu wstaw tu: <strong>Top 3 problemy</strong> (severity 1–3 + persona), <strong>3 wdrożone poprawki</strong> (przed/po), <strong>orientacyjny wynik SUS</strong> (mała próba → poglądowo) oraz 1–2 cytaty uczestników. Dopóki sesje się nie odbędą, ta sekcja pozostaje pusta — <strong>niczego nie wymyślono</strong>. Narzędzia są w pełni gotowe.</p>
+
+  <table>
+    <tr><th>#</th><th>Severity (1–3)</th><th>Problem</th><th>Persona</th><th>Poprawka</th></tr>
+    <tr><td>F1</td><td>___</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+    <tr><td>F2</td><td>___</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+    <tr><td>F3</td><td>___</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+  </table>
+
+  <div class="pagefoot">WSB-PIU Task Manager — dokumentacja &middot; strona 3 / 4</div>
+</section>
+
+<!-- STRONA 4 -->
+<section class="page">
+  <h2>4 &middot; Implementacja i retrospektywa</h2>
+
+  <h3>Stack technologiczny</h3>
+  <ul>
+    <li><strong>Build:</strong> Vite 8 &middot; <strong>Framework:</strong> React 19 + TypeScript 6 (tryb <em>strict</em>, 0 użyć <em>any</em>).</li>
+    <li><strong>Styling:</strong> Tailwind CSS v4 + shadcn/ui (na Radix — dostępność z definicji); tokeny z Figmy przez <em>@theme</em>.</li>
+    <li><strong>Routing:</strong> react-router v7 (<em>/</em>, <em>/settings</em>, <em>*</em>) z dzieleniem kodu. <strong>Stan:</strong> useReducer + Context.</li>
+    <li><strong>Formularze:</strong> react-hook-form + zod (jeden schemat waliduje formularz i localStorage). <strong>Daty:</strong> date-fns.</li>
+    <li><strong>Testy:</strong> Vitest + Testing Library (49) + Playwright/Chromium (13) = <strong>62 testy, wszystkie zielone</strong>. <strong>Jakość:</strong> ESLint, Prettier, Husky. <strong>CI/CD:</strong> GitHub Actions + Vercel.</li>
+  </ul>
+
+  <h3>Zrealizowane funkcje <span class="badge">12 = 5 wymaganych + 7 rozszerzonych</span></h3>
+  <p><strong>5 wymaganych:</strong> dodawanie &middot; edycja &middot; usuwanie (z „Cofnij") &middot; oznaczanie wykonane &middot; lista zadań.<br>
+  <strong>7 rozszerzonych:</strong> filtrowanie + sortowanie &middot; priorytety + terminy &middot; kategorie/tagi &middot; wyszukiwarka (debounce) &middot; tryb ciemny (jasny/ciemny/system, zapamiętywany) &middot; walidacja formularzy (PL) &middot; localStorage (wersjonowanie + odzyskiwanie uszkodzonych danych).</p>
+
+  <h3>Liczby (stan QA, Etap 6)</h3>
+  <ul>
+    <li><strong>62 testy automatyczne</strong> zielone (49 jednostkowych/komponentowych + 13 e2e).</li>
+    <li><strong>Główny bundle ~117 kB po gzip</strong> (z 208 kB przed podziałem); formularz i ustawienia ładowane dopiero, gdy potrzebne (lazy).</li>
+    <li><strong>Responsywność 375 / 768 / 1280 px</strong> — brak poziomego przewijania; wykryto i naprawiono błąd paska narzędzi na 768 px.</li>
+    <li><strong>Dostępność:</strong> pełna obsługa klawiaturą, status nie tylko kolorem, etykiety + ARIA, <em>lang="pl"</em> (audyt kodu).</li>
+  </ul>
+
+  <h3 class="links">Linki</h3>
+  <ul class="links">
+    <li><strong>Repozytorium:</strong> <span class="todo">TODO — wkleić pełny URL GitHub po opublikowaniu.</span></li>
+    <li><strong>Figma Hi-Fi v0.1:</strong> <a href="https://www.figma.com/design/g491nUK7eH0wODYsySBEMf/WSB-PIU-%E2%80%94-Task-Manager-%C2%B7-Hi-Fi-v0.1">figma.com/design/…/WSB-PIU-Task-Manager-Hi-Fi-v0.1</a> (ramka „Nowe zadanie", node 133:2).</li>
+    <li><strong>Wdrożenie (Vercel):</strong> <span class="todo">TODO — po pierwszym deployu (Root Directory = apps/web, preset Vite).</span></li>
+  </ul>
+
+  <h3>Czego się nauczyłem</h3>
+  <ul>
+    <li>Testowanie na prototypie przed implementacją jest tańsze niż przerabianie działającego kodu.</li>
+    <li>Decyzje warto zapisywać od razu (ADR + CHANGELOG) — po tygodniach łatwo zapomnieć „dlaczego tak".</li>
+    <li>Dostępność to nie dodatek na koniec — projektowanie od początku było tańsze niż łatanie.</li>
+    <li>Progresywne ujawnianie pogodziło sprzeczne potrzeby person jednym komponentem.</li>
+    <li>TypeScript strict wymusił przemyślenie modelu danych przed UI — mniej błędów później.</li>
+  </ul>
+
+  <div class="pagefoot">WSB-PIU Task Manager — dokumentacja &middot; strona 4 / 4</div>
+</section>
+
+</body>
+</html>
