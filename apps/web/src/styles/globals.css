@@ -20,14 +20,14 @@
   --line: #ddd6c5; /* obwódki / linie */
   --cta-bg: #221f19; /* tło CTA */
   --cta-text: #f7f3e9; /* tekst na CTA */
-  --danger: #b23a2e; /* akcja destrukcyjna */
+  --danger: #9e3328; /* akcja destrukcyjna — przyciemniona pod WCAG AA na bg-destructive/10–20 */
 
   /* Kolory kategorii (semantyczne — swap w dark) */
   --category-green: #2f6f5e;
   --category-blue: #3a5f8a;
   --category-purple: #6a4f8a;
   --category-orange: #85531c; /* przyciemniony pod WCAG AA (≥4.5:1 na surface i bg/15) */
-  --category-red: #b23a2e;
+  --category-red: #9e3328; /* przyciemniony pod WCAG AA (badge destructive/10–20) */
   --category-teal: #2c6873; /* przyciemniony pod WCAG AA (≥4.5:1 na surface i bg/15) */
 
   /* --- Promienie (Figma) --- */

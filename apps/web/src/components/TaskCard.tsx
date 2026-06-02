@@ -67,8 +67,11 @@ export function TaskCard({
         type="button"
         onClick={() => onEdit(task.id)}
         className="min-w-0 flex-1 cursor-pointer text-left focus-visible:outline-none"
-        aria-label={`Edytuj zadanie: ${task.title}`}
       >
+        {/* Akcesyjny opis akcji jako sr-only prefiks — nazwa przycisku liczona
+            z treści widocznej (tytuł + odznaki), więc zawiera widoczny tekst
+            (WCAG 2.5.3 label-in-name), a nie tylko aria-label z samym tytułem. */}
+        <span className="sr-only">Edytuj zadanie: </span>
         <span
           id={titleId}
           className={cn(
