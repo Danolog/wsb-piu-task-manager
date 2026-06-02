@@ -1,4 +1,6 @@
+import { Trash2 } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Button } from '@/components/ui/button';
 import { PriorityBadge } from '@/components/PriorityBadge';
 import { cn } from '@/lib/utils';
 import type { Category, Task } from '@/features/tasks/model';
@@ -11,8 +13,10 @@ export interface TaskTableProps {
   tasks: Task[];
   categories: Record<string, Category>;
   onToggle: (id: string) => void;
-  /** Klik wiersza (poza checkboxem) → edycja zadania. */
+  /** Klik wiersza (poza checkboxem i koszem) → edycja zadania. */
   onOpen: (id: string) => void;
+  /** Klik kosza → usunięcie zadania (z undo po stronie wołającego). */
+  onDelete: (id: string) => void;
 }
 
 /**
@@ -26,6 +30,7 @@ export function TaskTable({
   categories,
   onToggle,
   onOpen,
+  onDelete,
 }: TaskTableProps) {
   return (
     <div className="overflow-hidden rounded-[var(--radius-field)] border border-line">
@@ -61,6 +66,7 @@ export function TaskTable({
             >
               Kategoria
             </th>
+            <th scope="col" className="w-12 py-2.5 pr-2" aria-label="Akcje" />
           </tr>
         </thead>
         <tbody>
@@ -153,6 +159,24 @@ export function TaskTable({
                       —
                     </span>
                   )}
+                </td>
+                <td
+                  className="py-3 pr-2 text-right align-middle"
+                  // Kosz nie ma otwierać edycji wiersza (jak checkbox po lewej).
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    aria-label={`Usuń zadanie: ${task.title}`}
+                    onClick={() => onDelete(task.id)}
+                    // Hit-area ≥ 44×44 (WCAG 2.5.5): ikona 32×32 + ::after rozszerza
+                    // klikalny obszar do 44px bez psucia layoutu wiersza.
+                    className="relative text-ink-muted after:absolute after:top-1/2 after:left-1/2 after:size-11 after:-translate-x-1/2 after:-translate-y-1/2 after:content-[''] hover:text-danger"
+                  >
+                    <Trash2 className="size-4" aria-hidden="true" />
+                  </Button>
                 </td>
               </tr>
             );

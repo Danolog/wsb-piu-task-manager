@@ -235,6 +235,7 @@ export function AllTasksPage({ preset }: AllTasksPageProps) {
             categories={state.categories}
             onToggle={handleToggle}
             onOpen={(id) => navigate(`/zadanie/${id}`)}
+            onDelete={handleDelete}
           />
         )}
       </div>

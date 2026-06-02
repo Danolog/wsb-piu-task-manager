@@ -104,6 +104,60 @@ describe('AllTasksPage / TaskTable (P-E)', () => {
     expect(within(table).queryByText('Bez terminu')).not.toBeInTheDocument();
   });
 
+  it('kosz w wierszu usuwa zadanie + toast „Cofnij" przywraca (POPRAWKA 2)', async () => {
+    const user = userEvent.setup();
+    seedWith([
+      task({ id: 'a', title: 'Do usunięcia' }),
+      task({ id: 'b', title: 'Zostaje' }),
+    ]);
+    renderAll('all');
+
+    const table = screen.getByRole('table');
+    await user.click(
+      within(table).getByRole('button', { name: 'Usuń zadanie: Do usunięcia' }),
+    );
+
+    // Zniknęło z listy, drugie zostaje.
+    await waitFor(() =>
+      expect(
+        within(screen.getByRole('table')).queryByText('Do usunięcia'),
+      ).not.toBeInTheDocument(),
+    );
+    expect(
+      within(screen.getByRole('table')).getByText('Zostaje'),
+    ).toBeInTheDocument();
+
+    // Undo przez toast przywraca zadanie.
+    await user.click(screen.getByRole('button', { name: 'Cofnij' }));
+    expect(
+      within(screen.getByRole('table')).getByText('Do usunięcia'),
+    ).toBeInTheDocument();
+  });
+
+  it('klik kosza w wierszu NIE otwiera edycji zadania (stopPropagation)', async () => {
+    const user = userEvent.setup();
+    seedWith([task({ id: 'a', title: 'Do usunięcia' })]);
+    renderAll('all');
+
+    await user.click(
+      within(screen.getByRole('table')).getByRole('button', {
+        name: 'Usuń zadanie: Do usunięcia',
+      }),
+    );
+
+    // Klik kosza usuwa, ale nie nawiguje na /zadanie/:id (brak ekranu „Edycja").
+    expect(screen.queryByText('Edycja')).not.toBeInTheDocument();
+  });
+
+  it('klik tytułu w wierszu (poza koszem) nadal otwiera edycję', async () => {
+    const user = userEvent.setup();
+    seedWith([task({ id: 'a', title: 'Edytowalne' })]);
+    renderAll('all');
+
+    await user.click(within(screen.getByRole('table')).getByText('Edytowalne'));
+    expect(screen.getByText('Edycja')).toBeInTheDocument();
+  });
+
   it('filtr kategorii z ?kat= pokazuje chip i zawęża listę', async () => {
     const user = userEvent.setup();
     seedWith([

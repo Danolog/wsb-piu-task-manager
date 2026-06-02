@@ -126,13 +126,16 @@ export function TaskCard({
         </span>
       </button>
 
+      {/* Kosz jest rodzeństwem przycisku edycji (nie zagnieżdżony), więc klik
+          kosza nie wyzwala onEdit — bez potrzeby stopPropagation. Hit-area ≥ 44×44
+          (WCAG 2.5.5): ikona 32×32 + ::after rozszerza klikalny obszar do 44px. */}
       <Button
         type="button"
         variant="ghost"
         size="icon"
         aria-label={`Usuń zadanie: ${task.title}`}
         onClick={() => onDelete(task.id)}
-        className="shrink-0 text-ink-muted hover:text-danger"
+        className="relative shrink-0 text-ink-muted after:absolute after:top-1/2 after:left-1/2 after:size-11 after:-translate-x-1/2 after:-translate-y-1/2 after:content-[''] hover:text-danger"
       >
         <Trash2 className="size-4" aria-hidden="true" />
       </Button>

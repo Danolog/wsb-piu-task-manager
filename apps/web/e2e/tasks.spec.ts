@@ -125,6 +125,47 @@ test('edycja + usuwanie: zmień → Zapisz; potem Usuń → modal → znika', as
   ).toBeHidden();
 });
 
+test('kosz w wierszu tabeli (desktop): Usuń → toast → Cofnij przywraca', async ({
+  page,
+}) => {
+  await completeOnboarding(page);
+  await addTask(page, 'Szybkie usuwanie');
+
+  const table = page.getByRole('table');
+  await expect(
+    table.getByText('Szybkie usuwanie', { exact: true }),
+  ).toBeVisible();
+
+  // Kosz po prawej w wierszu — usuwa od razu (bez modala), z undo przez toast.
+  await table
+    .getByRole('button', { name: 'Usuń zadanie: Szybkie usuwanie' })
+    .click();
+  await expect(
+    page.getByRole('table').getByText('Szybkie usuwanie', { exact: true }),
+  ).toBeHidden();
+
+  // Toast „Cofnij" przywraca zadanie do listy.
+  await page.getByRole('button', { name: 'Cofnij' }).click();
+  await expect(
+    page.getByRole('table').getByText('Szybkie usuwanie', { exact: true }),
+  ).toBeVisible();
+});
+
+test('klik kosza w wierszu nie otwiera edycji (zostaje na /wszystkie)', async ({
+  page,
+}) => {
+  await completeOnboarding(page);
+  await addTask(page, 'Bez edycji');
+
+  await page
+    .getByRole('table')
+    .getByRole('button', { name: 'Usuń zadanie: Bez edycji' })
+    .click();
+
+  // Klik kosza usuwa, ale NIE nawiguje na /zadanie/:id.
+  await expect(page).toHaveURL(/\/wszystkie$/);
+});
+
 test('filtry: panel → filtr priorytetu → lista zawężona', async ({ page }) => {
   await completeOnboarding(page);
 
