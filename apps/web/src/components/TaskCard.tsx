@@ -1,0 +1,118 @@
+import { CalendarClock } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
+import type { Category, Task } from '@/features/tasks/model';
+import {
+  PRIORITY_LABEL,
+  categoryDotClass,
+  formatDueDate,
+} from '@/features/tasks/presentation';
+
+export interface TaskCardProps {
+  task: Task;
+  category?: Category | undefined;
+  onToggle: (id: string) => void;
+  onEdit: (id: string) => void;
+}
+
+// Wariant Badge priorytetu (wysoki/pilny mocniej wyróżnione).
+const PRIORITY_VARIANT: Record<
+  Task['priority'],
+  'secondary' | 'outline' | 'destructive'
+> = {
+  low: 'outline',
+  medium: 'secondary',
+  high: 'secondary',
+  urgent: 'destructive',
+};
+
+/**
+ * Karta pojedynczego zadania.
+ * Stan „done" sygnalizowany dwoma kanałami (nie tylko kolorem — deuteranopia):
+ * przekreślenie tytułu + przyciemnienie całej karty.
+ */
+export function TaskCard({ task, category, onToggle, onEdit }: TaskCardProps) {
+  const done = task.status === 'done';
+  const due = formatDueDate(task.dueDate);
+  const titleId = `task-title-${task.id}`;
+
+  return (
+    <div
+      className={cn(
+        'group flex items-start gap-3 rounded-[var(--radius-field)] border border-line bg-surface px-3 py-3 transition-colors',
+        done && 'opacity-60',
+      )}
+      data-status={task.status}
+    >
+      <Checkbox
+        checked={done}
+        onCheckedChange={() => onToggle(task.id)}
+        // Min 32×32 px klikalnej powierzchni (checkbox + ::after w prymitywie powiększa hit-area).
+        className="mt-0.5 size-5"
+        aria-labelledby={titleId}
+        aria-label={done ? 'Oznacz jako niewykonane' : 'Oznacz jako wykonane'}
+      />
+
+      <button
+        type="button"
+        onClick={() => onEdit(task.id)}
+        className="min-w-0 flex-1 cursor-pointer text-left focus-visible:outline-none"
+        aria-label={`Edytuj zadanie: ${task.title}`}
+      >
+        <span
+          id={titleId}
+          className={cn(
+            'block truncate text-[15px] font-medium text-ink group-focus-within:underline',
+            done && 'text-ink-muted line-through',
+          )}
+        >
+          {task.title}
+        </span>
+
+        {task.description ? (
+          <span className="mt-0.5 block truncate text-[13px] text-ink-muted">
+            {task.description}
+          </span>
+        ) : null}
+
+        <span className="mt-2 flex flex-wrap items-center gap-2">
+          <Badge variant={PRIORITY_VARIANT[task.priority]}>
+            {PRIORITY_LABEL[task.priority]}
+          </Badge>
+
+          {category ? (
+            <Badge variant="outline" className="gap-1.5">
+              <span
+                className={cn(
+                  'size-2 shrink-0 rounded-full',
+                  categoryDotClass(category.color),
+                )}
+                aria-hidden="true"
+              />
+              {category.name}
+            </Badge>
+          ) : null}
+
+          {due ? (
+            <span
+              className={cn(
+                'inline-flex items-center gap-1 text-xs',
+                due.overdue && 'font-medium text-danger',
+                due.today && 'font-medium text-category-orange',
+                !due.overdue && !due.today && 'text-ink-muted',
+              )}
+            >
+              <CalendarClock className="size-3.5" aria-hidden="true" />
+              {due.label}
+              {due.overdue ? (
+                <span className="sr-only"> (po terminie)</span>
+              ) : null}
+              {due.today ? <span className="sr-only"> (dzisiaj)</span> : null}
+            </span>
+          ) : null}
+        </span>
+      </button>
+    </div>
+  );
+}
