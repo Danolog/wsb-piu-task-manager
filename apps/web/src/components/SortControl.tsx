@@ -20,6 +20,7 @@ const SORT_LABEL: Record<ViewFilters['sortBy'], string> = {
   createdAt: 'Data utworzenia',
   dueDate: 'Termin',
   priority: 'Priorytet',
+  title: 'Nazwa',
 };
 
 /** Wybór klucza sortowania (Select) + przełącznik kierunku rosnąco/malejąco. */

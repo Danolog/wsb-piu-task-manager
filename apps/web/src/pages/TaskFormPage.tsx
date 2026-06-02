@@ -1,0 +1,56 @@
+import { useNavigate } from 'react-router-dom';
+import { X } from 'lucide-react';
+import { useMemo } from 'react';
+import { useAppState } from '@/app/app-context';
+import { Button } from '@/components/ui/button';
+import { TaskForm } from '@/components/TaskForm';
+import type { TaskInput } from '@/features/tasks/model';
+
+/**
+ * Strona tworzenia zadania (/nowe). Pełna strona z formularzem (bez modalu).
+ * Desktop: w AppShell obok sidebara; mobile: pełna strona z nagłówkiem „× NOWE ZADANIE".
+ */
+export function TaskFormPage() {
+  const { state, dispatch } = useAppState();
+  const navigate = useNavigate();
+  const categories = useMemo(
+    () => Object.values(state.categories),
+    [state.categories],
+  );
+
+  function handleSubmit(input: TaskInput) {
+    dispatch({ type: 'task/add', payload: input });
+    // Wracamy do listy — gdy zadanie ma termin „dziś", widać je też na kokpicie.
+    navigate('/wszystkie');
+  }
+
+  return (
+    <div className="mx-auto max-w-2xl px-4 py-6 md:px-8 md:py-8">
+      <div className="mb-6 flex items-center justify-between gap-3">
+        <h1 className="text-[11px] font-medium tracking-wide text-ink-soft uppercase">
+          Nowe zadanie
+        </h1>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          aria-label="Zamknij"
+          onClick={() => navigate(-1)}
+        >
+          <X className="size-5" aria-hidden="true" />
+        </Button>
+      </div>
+
+      <TaskForm
+        categories={categories}
+        onSubmit={handleSubmit}
+        submitLabel="Dodaj zadanie"
+        footerSlot={
+          <Button type="button" variant="ghost" onClick={() => navigate(-1)}>
+            Anuluj
+          </Button>
+        }
+      />
+    </div>
+  );
+}

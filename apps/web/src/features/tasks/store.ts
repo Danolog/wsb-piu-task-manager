@@ -14,7 +14,14 @@ import type {
   TaskInput,
   Category,
   Theme,
+  NotificationPrefs,
 } from './model';
+
+/** Domyślne ustawienia powiadomień (atrapy) — gdy stan ich jeszcze nie ma. */
+export const DEFAULT_NOTIFICATIONS: NotificationPrefs = {
+  reminders: true,
+  dailySummary: false,
+};
 
 // ---------- Akcje (discriminated union) ----------
 
@@ -24,6 +31,7 @@ export type Action =
       type: 'task/update';
       payload: { id: TaskId; changes: Partial<TaskInput> };
     }
+  | { type: 'task/saveEdit'; payload: { id: TaskId; input: TaskInput } }
   | { type: 'task/delete'; payload: { id: TaskId } }
   | { type: 'task/restore'; payload: { task: Task } }
   | { type: 'task/toggle'; payload: { id: TaskId } }
@@ -34,7 +42,12 @@ export type Action =
     }
   | { type: 'category/delete'; payload: { id: string } }
   | { type: 'ui/setTheme'; payload: { theme: Theme } }
+  | {
+      type: 'ui/setNotification';
+      payload: { key: keyof NotificationPrefs; value: boolean };
+    }
   | { type: 'user/setName'; payload: { name: string } }
+  | { type: 'state/reset'; payload: { state: AppState } }
   | { type: 'state/hydrate'; payload: AppState };
 
 function now(): string {
@@ -77,6 +90,34 @@ export function rootReducer(state: AppState, action: Action): AppState {
         updatedAt: now(),
       };
       return { ...state, tasks: { ...state.tasks, [existing.id]: updated } };
+    }
+
+    case 'task/saveEdit': {
+      // Zapis z formularza edycji: WSZYSTKIE pola edytowalne pochodzą z `input`.
+      // Pola opcjonalne nieobecne w input zostają USUNIĘTE z zadania (domyka dług
+      // z Build 1: wyczyszczenie Terminu/Godziny/Kategorii/Notatki kasuje wartość,
+      // nie zostawia starej). Zachowujemy id, createdAt, completedAt i bieżący status.
+      const existing = state.tasks[action.payload.id];
+      if (!existing) return state;
+      const { input } = action.payload;
+      const next: Task = {
+        id: existing.id,
+        title: input.title,
+        status: existing.status,
+        priority: input.priority,
+        createdAt: existing.createdAt,
+        updatedAt: now(),
+        ...(existing.completedAt !== undefined && {
+          completedAt: existing.completedAt,
+        }),
+        ...(input.description !== undefined && {
+          description: input.description,
+        }),
+        ...(input.dueDate !== undefined && { dueDate: input.dueDate }),
+        ...(input.dueTime !== undefined && { dueTime: input.dueTime }),
+        ...(input.categoryId !== undefined && { categoryId: input.categoryId }),
+      };
+      return { ...state, tasks: { ...state.tasks, [existing.id]: next } };
     }
 
     case 'task/delete': {
@@ -158,8 +199,27 @@ export function rootReducer(state: AppState, action: Action): AppState {
     case 'ui/setTheme':
       return { ...state, ui: { ...state.ui, theme: action.payload.theme } };
 
+    case 'ui/setNotification': {
+      const current = state.ui.notifications ?? DEFAULT_NOTIFICATIONS;
+      return {
+        ...state,
+        ui: {
+          ...state.ui,
+          notifications: {
+            ...current,
+            [action.payload.key]: action.payload.value,
+          },
+        },
+      };
+    }
+
     case 'user/setName':
       return { ...state, user: { ...state.user, name: action.payload.name } };
+
+    case 'state/reset':
+      // „Resetuj dane": wracamy do świeżego stanu (seed), zachowując imię usera
+      // i motyw — bo reset czyści zadania/kategorie, nie wylogowuje z onboardingu.
+      return action.payload.state;
 
     case 'state/hydrate':
       return action.payload;
@@ -199,7 +259,7 @@ export interface ViewFilters {
   status: Status | 'all';
   /** Preset zakresu dat; gdy obecny, zawęża listę niezależnie od pozostałych filtrów. */
   datePreset?: DatePreset;
-  sortBy: 'createdAt' | 'dueDate' | 'priority';
+  sortBy: 'createdAt' | 'dueDate' | 'priority' | 'title';
   sortDir: 'asc' | 'desc';
 }
 
@@ -302,6 +362,9 @@ export function selectVisibleTasks(
         break;
       case 'createdAt':
         cmp = a.createdAt.localeCompare(b.createdAt);
+        break;
+      case 'title':
+        cmp = a.title.localeCompare(b.title, 'pl');
         break;
     }
     return filters.sortDir === 'asc' ? cmp : -cmp;

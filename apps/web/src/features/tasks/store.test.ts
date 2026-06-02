@@ -414,3 +414,90 @@ describe('selectVisibleTasks — datePreset', () => {
     expect(none).toHaveLength(7);
   });
 });
+
+describe('rootReducer — task/saveEdit (P-F)', () => {
+  it('zapisuje zmienione pola i zachowuje id/createdAt/status', () => {
+    const withTask = addTask(seedState(), makeInput({ dueDate: '2026-06-10' }));
+    const id = Object.keys(withTask.tasks)[0]!;
+    const createdAt = withTask.tasks[id]!.createdAt;
+
+    const edited = rootReducer(withTask, {
+      type: 'task/saveEdit',
+      payload: {
+        id,
+        input: {
+          title: 'Nowy tytuł',
+          priority: 'high',
+          status: 'todo',
+          dueDate: '2026-06-11',
+          dueTime: '18:00',
+        },
+      },
+    });
+    expect(edited.tasks[id]!.title).toBe('Nowy tytuł');
+    expect(edited.tasks[id]!.priority).toBe('high');
+    expect(edited.tasks[id]!.dueTime).toBe('18:00');
+    expect(edited.tasks[id]!.id).toBe(id);
+    expect(edited.tasks[id]!.createdAt).toBe(createdAt);
+  });
+
+  it('czyszczenie Terminu/Godziny USUWA pola z zadania (dług Build 1)', () => {
+    const withTask = addTask(
+      seedState(),
+      makeInput({
+        dueDate: '2026-06-10',
+        dueTime: '12:00',
+        description: 'notatka',
+        categoryId: 'cat-praca',
+      }),
+    );
+    const id = Object.keys(withTask.tasks)[0]!;
+
+    // Edycja bez dueDate/dueTime/description/categoryId = wyczyszczenie tych pól.
+    const cleared = rootReducer(withTask, {
+      type: 'task/saveEdit',
+      payload: {
+        id,
+        input: { title: 'Bez terminu', priority: 'medium', status: 'todo' },
+      },
+    });
+    const t = cleared.tasks[id]!;
+    expect('dueDate' in t).toBe(false);
+    expect('dueTime' in t).toBe(false);
+    expect('description' in t).toBe(false);
+    expect('categoryId' in t).toBe(false);
+  });
+
+  it('nieistniejące id → stan bez zmian', () => {
+    const base = seedState();
+    const next = rootReducer(base, {
+      type: 'task/saveEdit',
+      payload: {
+        id: 'brak',
+        input: { title: 'x', priority: 'low', status: 'todo' },
+      },
+    });
+    expect(next).toBe(base);
+  });
+});
+
+describe('rootReducer — ui/setNotification + state/reset (P-H)', () => {
+  it('ui/setNotification ustawia przełącznik powiadomień', () => {
+    const next = rootReducer(seedState(), {
+      type: 'ui/setNotification',
+      payload: { key: 'dailySummary', value: true },
+    });
+    expect(next.ui.notifications?.dailySummary).toBe(true);
+  });
+
+  it('state/reset podmienia stan na przekazany', () => {
+    const withTask = addTask(seedState(), makeInput());
+    const fresh = { ...seedState(), user: { name: 'Kasia' } };
+    const next = rootReducer(withTask, {
+      type: 'state/reset',
+      payload: { state: fresh },
+    });
+    expect(Object.keys(next.tasks)).toHaveLength(0);
+    expect(next.user.name).toBe('Kasia');
+  });
+});
