@@ -5,8 +5,11 @@ import { RequireOnboarding, RedirectIfOnboarded } from './RequireOnboarding';
 
 // Code-splitting na poziomie tras: każdy widok ląduje w osobnym chunku,
 // ładowanym dopiero przy wejściu na trasę.
-const TasksPage = lazy(() =>
-  import('@/pages/TasksPage').then((m) => ({ default: m.TasksPage })),
+const TodayPage = lazy(() =>
+  import('@/pages/TodayPage').then((m) => ({ default: m.TodayPage })),
+);
+const AllTasksPage = lazy(() =>
+  import('@/pages/AllTasksPage').then((m) => ({ default: m.AllTasksPage })),
 );
 const SettingsPage = lazy(() =>
   import('@/pages/SettingsPage').then((m) => ({ default: m.SettingsPage })),
@@ -60,15 +63,18 @@ export const router = createBrowserRouter([
     ),
     children: [
       { index: true, element: <Navigate to="/dzis" replace /> },
-      { path: 'dzis', element: withSuspense(<TasksPage />) },
-      { path: 'wszystkie', element: withSuspense(<TasksPage />) },
+      { path: 'dzis', element: withSuspense(<TodayPage />) },
+      {
+        path: 'wszystkie',
+        element: withSuspense(<AllTasksPage preset="all" />),
+      },
       {
         path: 'tydzien',
-        element: withSuspense(<PlaceholderPage title="Ten tydzień" />),
+        element: withSuspense(<AllTasksPage preset="week" />),
       },
       {
         path: 'zrobione',
-        element: withSuspense(<PlaceholderPage title="Zrobione" />),
+        element: withSuspense(<AllTasksPage preset="done" />),
       },
       {
         path: 'szukaj',

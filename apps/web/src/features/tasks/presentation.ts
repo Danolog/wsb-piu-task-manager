@@ -104,6 +104,30 @@ export function formatDueTime(
   return withPrefix ? `do ${dueTime}` : dueTime;
 }
 
+/**
+ * Kompaktowa etykieta terminu do tabeli „Wszystkie" (D 20:110): „dziś 17:00",
+ * „pt 12 maj", „wt 11:00". Dla dziś używa słowa „dziś" (+ ew. godzina),
+ * inaczej skrót dnia tygodnia + dzień + skrót miesiąca (+ ew. godzina).
+ * Zwraca null gdy brak/niepoprawna data — wołający renderuje wtedy „—".
+ */
+export function formatDueShort(
+  dueDate: string | undefined,
+  dueTime?: string,
+): { label: string; today: boolean; overdue: boolean } | null {
+  if (!dueDate) return null;
+  const parsed = parseISO(dueDate);
+  if (!isValid(parsed)) return null;
+  const today = isToday(parsed);
+  const hasTime =
+    typeof dueTime === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(dueTime);
+  const base = today ? 'dziś' : format(parsed, 'EEEEEE d MMM', { locale: pl });
+  return {
+    label: hasTime ? `${base} ${dueTime}` : base,
+    today,
+    overdue: !today && isPast(parsed),
+  };
+}
+
 export function lookupCategory(
   categories: Record<string, Category>,
   categoryId: string | undefined,
