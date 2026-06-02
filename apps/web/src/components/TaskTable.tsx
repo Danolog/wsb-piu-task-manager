@@ -75,7 +75,10 @@ export function TaskTable({
                 key={task.id}
                 className={cn(
                   'group cursor-pointer border-b border-line bg-surface transition-colors last:border-b-0 hover:bg-surface-alt/40',
-                  done && 'opacity-60',
+                  // Done sygnalizowane przekreśleniem + wyciszonym tekstem (poniżej),
+                  // bez opacity na wierszu — globalna przezroczystość zbijała kontrast
+                  // tekstu poniżej WCAG AA (axe color-contrast).
+                  done && 'bg-surface-alt/30',
                 )}
                 onClick={() => onOpen(task.id)}
               >

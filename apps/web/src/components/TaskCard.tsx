@@ -49,7 +49,9 @@ export function TaskCard({
     <div
       className={cn(
         'group flex items-start gap-3 rounded-[var(--radius-field)] border border-line bg-surface px-3 py-3 transition-colors',
-        done && 'opacity-60',
+        // Done = przekreślenie + wyciszony tytuł (niżej), bez opacity na całej karcie —
+        // globalna przezroczystość zbijała kontrast tekstu poniżej WCAG AA.
+        done && 'bg-surface-alt/30',
       )}
       data-status={task.status}
     >

@@ -26,9 +26,9 @@
   --category-green: #2f6f5e;
   --category-blue: #3a5f8a;
   --category-purple: #6a4f8a;
-  --category-orange: #b5722e;
+  --category-orange: #85531c; /* przyciemniony pod WCAG AA (≥4.5:1 na surface i bg/15) */
   --category-red: #b23a2e;
-  --category-teal: #3a7f8a;
+  --category-teal: #2c6873; /* przyciemniony pod WCAG AA (≥4.5:1 na surface i bg/15) */
 
   /* --- Promienie (Figma) --- */
   --radius-field: 11px;
@@ -77,7 +77,7 @@
   --category-blue: #7fa6d6;
   --category-purple: #b095d6;
   --category-orange: #e0a25f;
-  --category-red: #e07567;
+  --category-red: #ec8a7d; /* rozjaśniony pod WCAG AA na bg-category-red/15 (badge „pilne”) */
   --category-teal: #5fb0bd;
 }
 
