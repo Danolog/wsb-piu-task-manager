@@ -126,13 +126,16 @@
   <div class="glossary">
     <b>Słownik (dla osób nietechnicznych):</b>
     <b>frontend</b> — warstwa aplikacji, którą widzi i klika użytkownik;
-    <b>modal</b> — okienko nakładane na ekran (formularz), bez przechodzenia na osobną stronę;
+    <b>ekran logiczny</b> — jeden widok pod własnym adresem (np. „Dziś", „Ustawienia");
+    <b>onboarding</b> — pierwsze uruchomienie, w którym aplikacja pyta o imię i kategorie;
+    <b>gate</b> (bramka) — warunek przepuszczający dalej (tu: po podaniu imienia);
+    <b>sidebar / tab-bar</b> — boczne menu na komputerze / dolny pasek nawigacji na telefonie;
     <b>user flow</b> — ścieżka kroków, którą przechodzi użytkownik do celu;
     <b>Hi-Fi</b> — szczegółowy projekt wizualny w docelowych kolorach i czcionkach (Figma);
     <b>design token</b> — nazwana wartość projektu (np. „kolor tła"), używana spójnie w całej apce;
     <b>localStorage</b> — pamięć przeglądarki, dane zostają po zamknięciu karty, bez logowania;
     <b>responsywność</b> — dopasowanie układu do szerokości ekranu;
-    <b>a11y</b> — dostępność dla osób z niepełnosprawnościami.
+    <b>a11y / axe / Lighthouse</b> — dostępność i automatyczne narzędzia do jej pomiaru oraz pomiaru wydajności.
   </div>
 
   <h2>1 &middot; Problem i persony</h2>
@@ -165,39 +168,55 @@
 
 <!-- STRONA 2 -->
 <section class="page">
-  <h2>2 &middot; Główny user flow i kluczowe decyzje projektowe</h2>
+  <h2>2 &middot; Struktura aplikacji, user flow i kluczowe decyzje</h2>
+
+  <h3>9 ekranów logicznych (każdy w wariancie komputer + telefon = 26 ramek Figmy, wszystkie zaimplementowane)</h3>
+  <p style="font-size:9.6pt;">
+    <strong>1. Onboarding</strong> (imię + kategorie, na telefonie poprzedzony ekranem powitalnym) &middot;
+    <strong>2. Dziś / kokpit</strong> (powitanie po imieniu, pasek postępu dnia, seria, zadania na dziś) &middot;
+    <strong>3. Wszystkie</strong> (komputer = tabela, telefon = kartki) &middot;
+    <strong>4. Ten tydzień + Zrobione</strong> (ta sama lista z gotowymi filtrami zakresu) &middot;
+    <strong>5. Nowe zadanie</strong> (pełna strona formularza) &middot;
+    <strong>6. Edycja zadania</strong> (pełna strona, na komputerze układ 3-kolumnowy; usuwanie z potwierdzeniem) &middot;
+    <strong>7. Szukaj</strong> (osobny ekran na telefonie, pole w pasku górnym na komputerze) &middot;
+    <strong>8. Kategorie</strong> (zarządzanie + licznik zadań) &middot;
+    <strong>9. Ustawienia / „Ja"</strong> (imię, tryb ciemny, powiadomienia, reset danych).
+  </p>
 
   <h3>Główny przepływ użytkownika</h3>
-  <div class="flow">Otwarcie aplikacji (bez logowania — dane w localStorage)
+  <div class="flow">Pierwsze uruchomienie → ONBOARDING (imię + kategorie)  [bramka: bez imienia dalej nie wejdziesz]
         │
         ▼
-Lista zadań  ───────────────────────────────────────────────┐
-  • grupowanie po kategorii (kolorowe nagłówki)              │
-  • sekcja „Dzisiaj" na górze                                │ filtr / wyszukiwanie /
-  • wyraźne statusy (do zrobienia ↔ zrobione)                │ sortowanie — in-place
-        │                                                    │ (bez przeładowania)
-        ├──► „+ Dodaj zadanie" → MODAL formularza ───────────┘
-        │       tytuł + termin od razu; priorytet / kategoria /
-        │       opis pod „Więcej opcji" → Zapisz / „Zapisz i nowe"
+KOKPIT „DZIŚ" (powitanie + pasek postępu + seria + zadania na dziś)
         │
-        ├──► klik w checkbox → wykonane (check + przekreślenie + przyciemnienie)
+        ├──► „+ Dodaj" → strona NOWE ZADANIE ───────────────────────┐
+        │       tytuł + priorytet + termin + GODZINA                │
+        │       (godzina aktywna dopiero po wybraniu daty) → Zapisz │
+        │                                                           │
+        ├──► WSZYSTKIE / TEN TYDZIEŃ / ZROBIONE  ◄──────────────────┘
+        │       komputer = tabela, telefon = kartki
+        │       filtr kategorii / szukanie — in-place (bez przeładowania)
         │
-        ├──► edycja → ten sam MODAL (wypełniony danymi)
+        ├──► klik w checkbox → wykonane (check + przekreślenie + wyciszenie)
+        │       → toast „✓ Zadanie ukończone · Cofnij" (5 s)
         │
-        └──► usunięcie → potwierdzenie → toast „Cofnij" (5 s)
+        ├──► klik w zadanie → strona EDYCJA (/zadanie/:id) → Zapisz / Usuń (potwierdzenie)
+        │
+        └──► USTAWIENIA: tryb ciemny (jasny / ciemny / system) + imię + KATEGORIE
 
-Ustawienia (/settings): motyw (jasny / ciemny / system) + zarządzanie kategoriami</div>
+Nawigacja: komputer = lewy sidebar (Widoki + Kategorie + karta usera);  telefon = dolny tab-bar (Dziś / Lista / Szukaj / Ja).</div>
 
-  <h3>5 kluczowych decyzji projektowych (z uzasadnieniem)</h3>
+  <h3>6 kluczowych decyzji projektowych (z uzasadnieniem)</h3>
   <ol class="decisions">
-    <li><strong>Dodawanie/edycja w modalu, nie na osobnej stronie.</strong> Z journey map: Marek dodaje zadania <strong>w kontekście listy</strong>, Anna po zapisie wraca do <strong>identycznego widoku</strong>. Modal zamyka pętlę bez nawigacji. (ADR-0001/0002, plan Etap 5)</li>
-    <li><strong>Status dwukanałowo, nie samym kolorem.</strong> Zrobione = zielony check <strong>+ przekreślenie + przyciemnienie</strong>. Powód: ~8% mężczyzn nie rozróżnia czerwieni/zieleni; Anna czyta status z 1 m. Zgodne z WCAG 1.4.1.</li>
-    <li><strong>Formularz z progresywnym ujawnianiem.</strong> Na starcie tylko <strong>tytuł + termin</strong>; priorytet/kategoria/opis pod „Więcej opcji". Godzi prostotę (Anna) z kontrolą (Marek) jednym komponentem. Etykiety nad polami, komunikaty błędów po ludzku.</li>
-    <li><strong>Mobile-first, duże elementy klikalne.</strong> Układ najpierw pod telefon (Kasia), sidebar zwija się w wysuwane menu. Przyciski min. 44×44 px, checkbox min. 32×32 px, stałe miejsce zapisu na dole.</li>
+    <li><strong>Dodawanie i edycja jako pełne strony, nie modal.</strong> Po ustaleniu pełnego zakresu Figmy decyzja zmieniła się z modalu na <strong>pełne strony</strong> (<em>/nowe</em>, <em>/zadanie/:id</em>) — bo edycja na komputerze to układ 3-kolumnowy, niemożliwy w ciasnym okienku. Wierność prototypowi &gt; oszczędność nawigacji; logika formularza wspólna dla obu trybów (jeden komponent <em>TaskForm</em>).</li>
+    <li><strong>Onboarding jako bramka pierwszego uruchomienia.</strong> Imię + kategorie przed wejściem do kokpitu — bo kokpit wita po imieniu („Cześć, Kasiu"). Bramka (<em>RequireOnboarding</em>) przekierowuje, dopóki imię nie zostanie podane; na telefonie poprzedza ekran powitalny.</li>
+    <li><strong>Dwie nawigacje: sidebar (komputer) + tab-bar (telefon).</strong> Kasia obsługuje telefon jedną ręką (dolny pasek w zasięgu kciuka), Marek i Anna pracują na większym ekranie (boczne menu z kontekstem). Przełączane wyłącznie szerokością ekranu (próg <em>md</em>).</li>
+    <li><strong>Tryb ciemny jako globalna podmiana tokenów.</strong> Motyw przełącza jedną zmienną na całym dokumencie; każdy z 9 ekranów dziedziczy ciemny automatycznie (nazwane tokeny zamiast wartości na sztywno). Wybór zapamiętywany.</li>
+    <li><strong>Status dwukanałowo, nie samym kolorem.</strong> Zrobione = <strong>przekreślenie + wyciszenie</strong>, nie tylko kolor. Powód: ~8% mężczyzn nie rozróżnia czerwieni/zieleni; Anna czyta status z 1 m. Zgodne z WCAG 1.4.1. (W QA usunięto przygaszanie całego wiersza — zbijało kontrast.)</li>
     <li><strong>Stan na useReducer + Context, dane w localStorage; stan widoku osobno.</strong> Auto-zapis po każdej akcji, bez przycisku „Zapisz" i bez logowania. Filtry/wyszukiwanie/sortowanie świadomie poza zapisem (czysta funkcja <em>selectVisibleTasks</em>), by filtrowanie było płynne. (ADR-0003)</li>
   </ol>
 
-  <p class="note"><b>Bonus (most projekt → kod):</b> kolory, czcionki i kształty z prototypu Hi-Fi (Figma) zmapowano <strong>1:1</strong> na design tokeny (mechanizm <em>@theme</em> w Tailwind), m.in. tło #f4efe4, tekst #221f19, czcionka Inter. Aplikacja wygląda jak prototyp, a tryb ciemny to podmiana tokenów.</p>
+  <p class="note"><b>Bonus (most projekt → kod):</b> kolory, czcionki i kształty z prototypu Hi-Fi (Figma) zmapowano <strong>1:1</strong> na design tokeny (mechanizm <em>@theme</em> w Tailwind), m.in. tło #f4efe4, tekst #221f19, czcionka Inter. Aplikacja wygląda jak prototyp, a tryb ciemny to podmiana tokenów na wszystkich 9 ekranach.</p>
 
   <div class="pagefoot">WSB-PIU Task Manager — dokumentacja &middot; strona 2 / 4</div>
 </section>
@@ -208,7 +227,7 @@ Ustawienia (/settings): motyw (jasny / ciemny / system) + zarządzanie kategoria
 
   <h3>Metodologia</h3>
   <p>Zaprojektowano kompletny zestaw testów (<em>Etap4_Usability_Tests.md</em>): moderowany test typu <strong>think-aloud</strong> (myślenie na głos) na <strong>działającej aplikacji</strong>, z <strong>3 uczestnikami</strong> wg person (student ~20 / pracujący ~25–35 / osoba mniej techniczna 50+). Podstawa: badania Jakoba Nielsena — <strong>3 użytkowników wykrywa ok. 60–75% problemów użyteczności</strong>; liczy się różnorodność profili, nie wielkość próby.</p>
-  <p><strong>Scenariusz (5 zadań):</strong> (Z1) dodaj zadanie z priorytetem i kategorią, (Z2) oznacz wykonane, (Z3) filtruj po kategorii, (Z4) zmień termin, (Z5) włącz tryb ciemny. Mierzone: sukces zadania (1/0), orientacyjny czas, liczba błędów, kwestionariusz <strong>SUS</strong> (System Usability Scale, 0–100) i cytaty jakościowe.</p>
+  <p><strong>Scenariusz (5 zadań na realnych 9 ekranach):</strong> (Z1) przejdź onboarding — imię i kategorie, (Z2) na ekranie „Nowe zadanie" dodaj zadanie z priorytetem, kategorią i godziną, (Z3) oznacz wykonane i cofnij (toast), (Z4) na liście „Wszystkie" przefiltruj po kategorii, (Z5) włącz tryb ciemny w Ustawieniach. Mierzone: sukces zadania (1/0), orientacyjny czas, liczba błędów, kwestionariusz <strong>SUS</strong> (System Usability Scale, 0–100) i cytaty jakościowe.</p>
 
   <h3>Wnioski z testów</h3>
   <p class="note"><b>[PLACEHOLDER — do uzupełnienia po sesjach z Etapu 4.]</b><br>
@@ -232,28 +251,31 @@ Ustawienia (/settings): motyw (jasny / ciemny / system) + zarządzanie kategoria
   <ul>
     <li><strong>Build:</strong> Vite 8 &middot; <strong>Framework:</strong> React 19 + TypeScript 6 (tryb <em>strict</em>, 0 użyć <em>any</em>).</li>
     <li><strong>Styling:</strong> Tailwind CSS v4 + shadcn/ui (na Radix — dostępność z definicji); tokeny z Figmy przez <em>@theme</em>.</li>
-    <li><strong>Routing:</strong> react-router v7 (<em>/</em>, <em>/settings</em>, <em>*</em>) z dzieleniem kodu. <strong>Stan:</strong> useReducer + Context.</li>
+    <li><strong>Routing:</strong> react-router v7 — <strong>10 tras</strong> (9 ekranów + 404) z dzieleniem kodu na trasy. <strong>Stan:</strong> useReducer + Context, localStorage z wersjonowaniem schematu (wersja 2) i migracją starych danych.</li>
     <li><strong>Formularze:</strong> react-hook-form + zod (jeden schemat waliduje formularz i localStorage). <strong>Daty:</strong> date-fns.</li>
-    <li><strong>Testy:</strong> Vitest + Testing Library (49) + Playwright/Chromium (13) = <strong>62 testy, wszystkie zielone</strong>. <strong>Jakość:</strong> ESLint, Prettier, Husky. <strong>CI/CD:</strong> GitHub Actions + Vercel.</li>
+    <li><strong>Testy:</strong> Vitest + Testing Library (105) + Playwright/Chromium (73, w tym 24 axe) = <strong>178 testów, wszystkie zielone</strong>. <strong>Jakość:</strong> ESLint, Prettier, Husky. <strong>CI/CD:</strong> GitHub Actions.</li>
   </ul>
 
-  <h3>Zrealizowane funkcje <span class="badge">12 = 5 wymaganych + 7 rozszerzonych</span></h3>
+  <h3>Zrealizowane funkcje <span class="badge">12 = 5 wymaganych + 7 rozszerzonych — wszystkie zaimplementowane</span></h3>
   <p><strong>5 wymaganych:</strong> dodawanie &middot; edycja &middot; usuwanie (z „Cofnij") &middot; oznaczanie wykonane &middot; lista zadań.<br>
-  <strong>7 rozszerzonych:</strong> filtrowanie + sortowanie &middot; priorytety + terminy &middot; kategorie/tagi &middot; wyszukiwarka (debounce) &middot; tryb ciemny (jasny/ciemny/system, zapamiętywany) &middot; walidacja formularzy (PL) &middot; localStorage (wersjonowanie + odzyskiwanie uszkodzonych danych).</p>
+  <strong>7 rozszerzonych:</strong> filtrowanie + sortowanie &middot; priorytety + terminy (z godziną) &middot; kategorie/tagi &middot; wyszukiwarka (debounce) &middot; tryb ciemny (jasny/ciemny/system, zapamiętywany, globalny na 9 ekranach) &middot; walidacja formularzy (PL) &middot; localStorage (wersjonowanie schematu + odzyskiwanie uszkodzonych danych).</p>
 
-  <h3>Liczby (stan QA, Etap 6)</h3>
+  <h3>Liczby (stan QA, Etap 6 — zmierzone realnie)</h3>
   <ul>
-    <li><strong>62 testy automatyczne</strong> zielone (49 jednostkowych/komponentowych + 13 e2e).</li>
-    <li><strong>Główny bundle ~117 kB po gzip</strong> (z 208 kB przed podziałem); formularz i ustawienia ładowane dopiero, gdy potrzebne (lazy).</li>
-    <li><strong>Responsywność 375 / 768 / 1280 px</strong> — brak poziomego przewijania; wykryto i naprawiono błąd paska narzędzi na 768 px.</li>
-    <li><strong>Dostępność:</strong> pełna obsługa klawiaturą, status nie tylko kolorem, etykiety + ARIA, <em>lang="pl"</em> (audyt kodu).</li>
+    <li><strong>178 testów automatycznych</strong> zielonych (105 jednostkowych/komponentowych + 73 e2e, w tym 24 axe).</li>
+    <li><strong>Lighthouse 100 / 100 / 100 / 100</strong> (wydajność / dostępność / dobre praktyki / SEO) na <em>/dzis</em> i <em>/wszystkie</em>, komputer <strong>i</strong> telefon — cztery pomiary, wszystkie po 100.</li>
+    <li><strong>Dostępność: axe 0 naruszeń poważnych/krytycznych</strong> na 9 ekranach w trybie jasnym i ciemnym (24 testy) — zmierzone, nie z audytu kodu; naprawiono realne naruszenia kontrastu.</li>
+    <li><strong>Główny bundle 426 kB / ~130 kB po gzip</strong>; każdy ekran w osobnej paczce ładowanej dopiero przy wejściu (np. formularz 33 kB gzip na <em>/nowe</em>).</li>
+    <li><strong>Responsywność 375 / 768 / 1024 / 1920 px</strong> — brak poziomego przewijania; potwierdzone przełączanie sidebar↔tab-bar i tabela↔kartki.</li>
   </ul>
+
+  <p class="note"><b>Tryb tylko lokalny (decyzja właściciela):</b> aplikacja nie jest publikowana w internecie (bez wdrożenia na serwerze, bez publicznego repozytorium). Uruchamia się ją na własnym komputerze — w <em>apps/web</em>: <em>npm install</em>, potem <em>npm run dev</em> (<em>localhost:5173</em>) lub <em>npm run build &amp;&amp; npm run preview</em> (<em>localhost:4173</em>). Dane żyją w localStorage, więc działa offline i bez logowania. Pełna instrukcja w <em>README.md</em>.</p>
 
   <h3 class="links">Linki</h3>
   <ul class="links">
-    <li><strong>Repozytorium:</strong> <span class="todo">TODO — wkleić pełny URL GitHub po opublikowaniu.</span></li>
-    <li><strong>Figma Hi-Fi v0.1:</strong> <a href="https://www.figma.com/design/g491nUK7eH0wODYsySBEMf/WSB-PIU-%E2%80%94-Task-Manager-%C2%B7-Hi-Fi-v0.1">figma.com/design/…/WSB-PIU-Task-Manager-Hi-Fi-v0.1</a> (ramka „Nowe zadanie", node 133:2).</li>
-    <li><strong>Wdrożenie (Vercel):</strong> <span class="todo">TODO — po pierwszym deployu (Root Directory = apps/web, preset Vite).</span></li>
+    <li><strong>Figma Hi-Fi v0.1:</strong> <a href="https://www.figma.com/design/g491nUK7eH0wODYsySBEMf/WSB-PIU-%E2%80%94-Task-Manager-%C2%B7-Hi-Fi-v0.1">figma.com/design/…/WSB-PIU-Task-Manager-Hi-Fi-v0.1</a> (9 ekranów × komputer/telefon = 26 ramek).</li>
+    <li><strong>Uruchomienie:</strong> wersja lokalna (<em>localhost</em>) — patrz ramka „Tryb tylko lokalny" wyżej i <em>README.md</em>.</li>
+    <li><strong>Repozytorium:</strong> lokalne (<em>wsb-piu-task-manager</em>, gałąź <em>feature/etap5-implementacja</em>) — bez publikacji publicznej.</li>
   </ul>
 
   <h3>Czego się nauczyłem</h3>

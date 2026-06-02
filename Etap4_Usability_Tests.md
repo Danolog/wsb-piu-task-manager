@@ -16,7 +16,7 @@
 
 **Cel:** sprawdzić, czy działająca aplikacja (Etap 5) pozwala trzem różnym typom użytkowników wykonać podstawowe zadania bez pomocy — i wyłapać konkretne miejsca, które ich blokują lub dezorientują.
 
-**Metoda:** moderowany test typu *think-aloud* (myślenie na głos) na **działającej aplikacji** (preview build z Etapu 5, uruchomiony lokalnie: `npm run preview` → `http://localhost:4173`, albo na linku z wdrożenia gdy będzie gotowy). Uczestnik wykonuje 5 zadań, komentując na głos. Moderator obserwuje, mierzy i notuje — **nie podpowiada**.
+**Metoda:** moderowany test typu *think-aloud* (myślenie na głos) na **działającej aplikacji** (wersja produkcyjna z Etapu 5, uruchomiona lokalnie: `npm run preview` → `http://localhost:4173`). Aplikacja działa **tylko lokalnie** — nie ma wersji w internecie, więc sesje prowadzisz na własnym komputerze. Uczestnik wykonuje 5 zadań na realnych 9 ekranach, komentując na głos. Moderator obserwuje, mierzy i notuje — **nie podpowiada**.
 
 **Dlaczego 3 użytkowników.** Jakob Nielsen (1994, *„Why You Only Need to Test with 5 Users"* / wcześniejsze badania z Landauerem) pokazał, że już **3 użytkowników wykrywa ok. 60–75% problemów użyteczności**. Nie potrzeba 20 osób — potrzeba 3 **różnych** profili odpowiadających personom z Etapu 1 i dobrego scenariusza. Każdy kolejny tester po piątym powtarza w większości te same odkrycia.
 
@@ -52,15 +52,17 @@
 
 ### Zadania
 
-| # | Zadanie (czytane uczestnikowi) | Co sprawdza | Funkcja w aplikacji |
-|---|---|---|---|
-| **Z1** | „Dodaj nowe zadanie: »Zapłacić rachunek za prąd do piątku«, ustaw **wysoki priorytet** i **kategorię Prywatne**." | Czy user znajduje przycisk dodawania, rozwija opcje zaawansowane (priorytet/kategoria są pod „Więcej opcji"), wybiera priorytet i kategorię | dodawanie zadania + priorytet + kategoria |
-| **Z2** | „Oznacz pierwsze zadanie z listy jako **wykonane**." | Czy user znajduje checkbox (kwadracik) i rozumie zmianę stanu (przekreślenie + przyciemnienie) | oznaczanie jako wykonane |
-| **Z3** | „Pokaż na liście **tylko zadania z kategorii Prywatne**." | Czy user znajduje filtr kategorii i rozumie, że lista się zawęziła | filtrowanie po kategorii |
-| **Z4** | „Wybierz dowolne zadanie i **zmień jego termin** na inny dzień." | Czy user znajduje edycję, otwiera kalendarz/date picker i zapisuje | edycja zadania + termin |
-| **Z5** | „Włącz **tryb ciemny** (ciemne tło aplikacji)." | Czy user znajduje przełącznik motywu | dark mode |
+> **Stan startowy sesji:** jeśli aplikacja była już używana na tym komputerze (imię ustawione), Z1 testuje onboarding na czystym stanie — przed sesją wykonaj reset danych w Ustawieniach (albo wyczyść localStorage), żeby uczestnik zaczął od pierwszego uruchomienia.
 
-**Wskazówka dla moderatora:** zadania są ułożone od najprostszego do najbardziej „ukrytego". Z1 celowo wymaga rozwinięcia „Więcej opcji" (progressive disclosure) — to dobry test, czy ten wzorzec nie ukrywa funkcji zbyt głęboko.
+| # | Zadanie (czytane uczestnikowi) | Co sprawdza | Ekran / funkcja w aplikacji |
+|---|---|---|---|
+| **Z1** | „To Twoje pierwsze uruchomienie aplikacji. **Przejdź ekran powitalny** — podaj swoje imię i wybierz kategorie, które Cię dotyczą, aż znajdziesz się na ekranie głównym." | Czy user rozumie onboarding, wpisuje imię, wybiera/odznacza kategorie i przechodzi dalej; czy kokpit „Dziś" wita po imieniu | Onboarding (`/onboarding`) → kokpit „Dziś" |
+| **Z2** | „Dodaj nowe zadanie: »Zapłacić rachunek za prąd«, ustaw **wysoki priorytet**, **kategorię Prywatne**, **termin na piątek** i **godzinę 18:00**." | Czy user znajduje „+ Dodaj", trafia na ekran „Nowe zadanie", wypełnia pola (priorytet, kategoria, data, godzina dostępna dopiero po dacie) i zapisuje | Nowe zadanie (`/nowe`) — pełna strona |
+| **Z3** | „Oznacz to zadanie jako **wykonane**, a potem **cofnij** to oznaczenie." | Czy user znajduje checkbox, rozumie zmianę stanu (przekreślenie + wyciszenie) i korzysta z „Cofnij" w komunikacie (toast) | oznaczanie wykonane + cofnięcie (toast) |
+| **Z4** | „Wejdź na listę **Wszystkie** i pokaż **tylko zadania z kategorii Prywatne**." | Czy user trafia na listę „Wszystkie", znajduje filtr kategorii i rozumie, że lista się zawęziła | Wszystkie (`/wszystkie`) + filtr kategorii |
+| **Z5** | „Włącz **tryb ciemny** (ciemne tło aplikacji)." | Czy user trafia do Ustawień i znajduje przełącznik motywu; czy zauważa, że ciemnieje cała aplikacja | Ustawienia (`/ustawienia`) — dark mode |
+
+**Wskazówka dla moderatora:** zadania prowadzą uczestnika przez realny przepływ aplikacji (onboarding → dodanie → status → filtr → ustawienia), od pierwszego uruchomienia po ostatni ekran. Z2 sprawdza, czy pełna strona formularza nie gubi pól (na pełnej stronie wszystko jest widoczne od razu — nie ma już „Więcej opcji"); zwróć uwagę, czy godzina, dostępna dopiero po wybraniu daty, nie dezorientuje.
 
 ---
 
@@ -134,11 +136,11 @@ SUS daje jeden wynik na skali **0–100** (to **nie procent** — to znormalizow
 
 | Zadanie | Sukces (1/0) | Czas (orientacyjnie) | Liczba błędów | Notatki moderatora |
 |---|---|---|---|---|
-| Z1 — dodaj zadanie + priorytet + kategoria | ___ | ___ | ___ | |
-| Z2 — oznacz wykonane | ___ | ___ | ___ | |
-| Z3 — filtruj po kategorii | ___ | ___ | ___ | |
-| Z4 — edytuj termin | ___ | ___ | ___ | |
-| Z5 — włącz tryb ciemny | ___ | ___ | ___ | |
+| Z1 — onboarding (imię + kategorie) | ___ | ___ | ___ | |
+| Z2 — dodaj zadanie (priorytet + kategoria + termin + godzina) | ___ | ___ | ___ | |
+| Z3 — oznacz wykonane + cofnij | ___ | ___ | ___ | |
+| Z4 — filtruj po kategorii (lista Wszystkie) | ___ | ___ | ___ | |
+| Z5 — włącz tryb ciemny (Ustawienia) | ___ | ___ | ___ | |
 | **SUS uczestnika** | | | | **___ / 100** |
 
 *„Błąd" = każde kliknięcie w złe miejsce, cofnięcie się, lub wyraźna dezorientacja przed wykonaniem zadania.*
@@ -180,7 +182,7 @@ SUS daje jeden wynik na skali **0–100** (to **nie procent** — to znormalizow
 ## 6. Instrukcja dla właściciela — jak przeprowadzić sesję
 
 ### Przebieg jednej sesji (krok po kroku)
-1. **Przygotuj aplikację** przed przyjściem uczestnika: `npm run preview` (lub link z wdrożenia), ekran startowy z kilkoma przykładowymi zadaniami i kategoriami (aplikacja ma seed: Studia, Praca, Prywatne, Dom, Zdrowie).
+1. **Przygotuj aplikację** przed przyjściem uczestnika: `npm run preview` (uruchomienie lokalne — nie ma wersji w internecie). Aby przetestować onboarding (Z1) na czystym stanie, wykonaj reset danych w Ustawieniach lub wyczyść localStorage. Aplikacja ma seed 6 kategorii: Studia, Praca, Prywatne, Dom, Zdrowie, Finanse.
 2. **Przeczytaj instrukcję wstępną** (sekcja 3) — dosłownie. Uzyskaj zgodę na nagranie.
 3. **Podawaj zadania pojedynczo** (Z1…Z5), za każdym razem czekając aż uczestnik skończy lub się podda.
 4. **Obserwuj i notuj** w szablonie 5.2: sukces/porażka, orientacyjny czas, błędy, cytaty.
@@ -214,4 +216,4 @@ SUS daje jeden wynik na skali **0–100** (to **nie procent** — to znormalizow
 2. **Żargon (think-aloud, SUS, severity, facylitacja)** → słowniczek na górze + tłumaczenie przy pierwszym użyciu.
 3. **SUS bywa źle liczony (mylony z procentem, błędne odwracanie pytań parzystych)** → krok po kroku + gotowy arkusz liczenia + uwaga „to nie procent".
 4. **Mała próba (3 osoby) może dać złudzenie statystyki** → wprost: wynik SUS orientacyjny, liczą się obserwacje jakościowe; uzasadnienie 60–75% (Nielsen).
-5. **Scenariusz mógłby nie odpowiadać realnym funkcjom aplikacji** → 5 zadań zmapowano 1:1 na funkcje z Etapu 5 (priorytet/kategoria pod „Więcej opcji", checkbox done, filtr kategorii, edycja + kalendarz, przełącznik motywu) i na journey mapy person z Etapu 2.
+5. **Scenariusz mógłby nie odpowiadać realnym funkcjom aplikacji** → po rozszerzeniu do 9 ekranów 5 zadań zmapowano 1:1 na realne ekrany z Etapu 5 v2 (onboarding, pełna strona „Nowe zadanie" z godziną, checkbox done + cofnij przez toast, filtr kategorii na liście „Wszystkie", przełącznik motywu w Ustawieniach) i na journey mapy person z Etapu 2 — żadnego „Więcej opcji" ani modalu, bo aplikacja ich już nie używa.

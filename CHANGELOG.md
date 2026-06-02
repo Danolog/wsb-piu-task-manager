@@ -7,6 +7,40 @@ Format wg [Keep a Changelog](https://keepachangelog.com/pl/1.1.0/) + [Semantic V
 ## [Unreleased]
 
 ### Added
+- **Etap 7 — dokumentacja oddania:** `Etap7_Dokumentacja.md` + `docs/Etap7_Dokumentacja.html` (4 strony A4, druk→PDF), `Etap7_Prezentacja.md` (konspekt prezentacji) — zaktualizowane pod pełny zakres 9 ekranów.
+
+---
+
+## [1.0.0] — 2026-06-02 — Etap 5 v2 (pełna implementacja, 9 ekranów) + Etap 6 (QA)
+
+> Aplikacja urosła z 3 widoków (lista + modal) do **9 ekranów logicznych** (× komputer/telefon = 26 ramek Figmy). Gałąź `feature/etap5-implementacja`.
+
+### Added
+- **9 ekranów logicznych**, wszystkie zaimplementowane: onboarding (imię + kategorie, splash na telefonie), kokpit „Dziś" (powitanie, pasek postępu, seria), „Wszystkie", „Ten tydzień", „Zrobione", „Nowe zadanie", „Edycja zadania", „Szukaj", „Kategorie", „Ustawienia/Ja".
+- **Dodawanie i edycja jako pełne strony** (`/nowe`, `/zadanie/:id`) zamiast modalu — wierność prototypowi Hi-Fi; na komputerze edycja w układzie 3-kolumnowym.
+- **Onboarding gate** (`RequireOnboarding`) — bez podanego imienia aplikacja przekierowuje na ekran powitalny.
+- **Dwie nawigacje:** sidebar na komputerze (widoki + kategorie z licznikami + karta usera z serią), tab-bar na telefonie (Dziś/Lista/Szukaj/Ja); przełączane progiem `md`.
+- **Globalny tryb ciemny** przez podmianę tokenów — wszystkie 9 ekranów, wybór zapamiętywany.
+- **Model danych v2** + migracja 1→2 (bezstratna): pole godziny zadania (`dueTime`), imię użytkownika, derived seria/postęp dnia, presety zakresu (dziś/tydzień/zrobione), seed 6 kategorii (dodano Finanse).
+
+### Changed
+- **Routing:** z 3 tras (`/`, `/settings`, `*`) na 10 tras (9 ekranów + 404), code-splitting per trasa.
+- **Status „zrobione":** usunięto przygaszanie całego wiersza (zbijało kontrast tekstu) — zostają dwa kanały poza kolorem (przekreślenie + wyciszenie).
+
+### Quality (Etap 6 QA — zmierzone realnie)
+- **178 testów automatycznych** zielonych: 105 jednostkowych/komponentowych (Vitest) + 73 e2e (Playwright/Chromium), w tym **24 testy dostępności axe** na 9 ekranach w trybie jasnym i ciemnym (0 naruszeń poważnych/krytycznych).
+- **Lighthouse 100/100/100/100** (wydajność/dostępność/dobre praktyki/SEO) na `/dzis` i `/wszystkie`, komputer i telefon (Performance podniesione z 86 — wcześniej mierzone błędnie na ekranie onboarding).
+- Naprawione realne naruszenia kontrastu (kolory kategorii, badge „pilne") i WCAG 2.5.3 (label-in-name).
+- Responsywność zweryfikowana na 375/768/1024/1920 px.
+
+### Notes
+- **Tryb tylko lokalny** (decyzja właściciela): bez publikacji w internecie, bez wdrożenia Vercel, bez publicznego repozytorium. Uruchomienie wyłącznie lokalne (`localhost`), dane w localStorage.
+
+---
+
+## [0.3.0] — Etap 0 (rusztowanie projektu: roadmap, ADR, journey maps)
+
+### Added
 - `PLAN.md` — główny roadmap projektu (9 sekcji: stan, mapowanie brief/ocena, decyzje architektoniczne, etap-po-etapie z DoD, konwencje, harmonogram, ryzyka, „START HERE", zasoby)
 - `CHANGELOG.md` — ten plik
 - `FUTURE.md` — parking pomysłów poza zakresem semestru (ochrona przed scope creep)

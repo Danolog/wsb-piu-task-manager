@@ -4,6 +4,8 @@ Projekt semestralny z przedmiotu **Projektowanie interfejsów użytkownika** (WS
 
 Aplikacja do zarządzania zadaniami (Task Management App) budowana w React — z naciskiem na pełen proces projektowy UX/UI: od badania użytkownika, przez journey mapping, po implementację i testy.
 
+**Zakres (po Etapie 5 v2):** **9 ekranów logicznych** (każdy w wariancie komputer + telefon = 26 ramek Figmy), wszystkie zaimplementowane — onboarding, kokpit „Dziś", lista „Wszystkie"/„Ten tydzień"/„Zrobione", dodawanie i edycja jako pełne strony, szukaj, kategorie, ustawienia. **12 funkcji** (5 wymaganych + 7 rozszerzonych). Aplikacja działa **tylko lokalnie** (bez publikacji w internecie), dane w pamięci przeglądarki (localStorage).
+
 ## Status projektu
 
 Projekt realizowany wg harmonogramu z briefu (7 etapów). Szczegółowy roadmap, decyzje architektoniczne i Definition of Done dla każdego etapu znajdziesz w [`PLAN.md`](./PLAN.md).
@@ -15,9 +17,9 @@ Projekt realizowany wg harmonogramu z briefu (7 etapów). Szczegółowy roadmap,
 | 2 | Low-Fi Wireframes + User Flow | ⬜ planowany | — |
 | 3 | Prototyp Hi-Fidelity (Figma) | ✅ ukończony (v0.1) | [Figma — Hi-Fi v0.1](#-linki) |
 | 4 | Testy użyteczności (min. 3 użytkowników) | ⬜ planowany | — |
-| 5 | Implementacja frontend (React) | ✅ **ukończony** | [`apps/web/`](./apps/web/), [`docs/Etap5_Implementation_Plan.md`](./docs/Etap5_Implementation_Plan.md) |
-| 6 | Testy końcowe i optymalizacja | 🔄 w toku | [`docs/Etap6_QA.md`](./docs/Etap6_QA.md) |
-| 7 | Prezentacja i dokumentacja (PDF 2–4 str.) | ⬜ planowany | — |
+| 5 | Implementacja frontend (React) | ✅ **ukończony (v2 — 9 ekranów)** | [`apps/web/`](./apps/web/), [`docs/Etap5_Implementation_Plan_v2.md`](./docs/Etap5_Implementation_Plan_v2.md) |
+| 6 | Testy końcowe i optymalizacja | ✅ **ukończony** | [`docs/Etap6_QA.md`](./docs/Etap6_QA.md) |
+| 7 | Prezentacja i dokumentacja (PDF 2–4 str.) | 🔄 w toku | [`Etap7_Dokumentacja.md`](./Etap7_Dokumentacja.md), [`Etap7_Prezentacja.md`](./Etap7_Prezentacja.md) |
 
 > **Uwaga dot. kolejności:** w briefie testy użyteczności (Etap 4) są **na prototypie**, przed implementacją. Wcześniejsza wersja README miała je po implementacji — obecny plan trzyma się briefu, bo testowanie na Figmie jest tańsze od przerabiania działającego kodu.
 
@@ -35,19 +37,19 @@ Projekt realizowany wg harmonogramu z briefu (7 etapów). Szczegółowy roadmap,
 - [`docs/figma-exports/`](./docs/figma-exports/) — eksporty Hi-Fi z Figmy (Etap 3, do wypełnienia)
 - [`.github/PULL_REQUEST_TEMPLATE.md`](./.github/PULL_REQUEST_TEMPLATE.md) — checklist dla każdego PR
 
-## Stack (stan po Etapie 5)
+## Stack (stan po Etapie 5 v2)
 
 - **Build:** Vite 8
 - **Framework:** React 19 + TypeScript 6 (strict mode, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`)
-- **Styling:** Tailwind CSS v4 (plugin Vite) + shadcn/ui (na Radix) — tokeny z Figmy przez `@theme`
-- **Routing:** react-router v7 (trasy: `/`, `/settings`, `*`) + code-splitting tras
+- **Styling:** Tailwind CSS v4 (plugin Vite) + shadcn/ui (na Radix) — tokeny z Figmy przez `@theme`; globalny tryb ciemny przez podmianę tokenów
+- **Routing:** react-router v7 — 10 tras (`/onboarding`, `/dzis`, `/wszystkie`, `/tydzien`, `/zrobione`, `/nowe`, `/zadanie/:id`, `/szukaj`, `/kategorie`, `/ustawienia` + 404) + code-splitting tras (każdy ekran w osobnym chunku)
 - **State:** `useReducer` + Context (bez dodatkowych libek)
 - **Forms:** react-hook-form + zod (ten sam schemat waliduje formularz i localStorage)
 - **Daty:** date-fns (import per-funkcja → tree-shaking)
-- **Storage:** localStorage z wersjonowanym schematem i migracjami
-- **Testy:** Vitest + Testing Library (49 unit/komponent) + Playwright/Chromium (13 e2e)
+- **Storage:** localStorage z wersjonowanym schematem (v2) i migracją 1→2
+- **Testy:** Vitest + Testing Library (105 unit/komponent) + Playwright/Chromium (73 e2e, w tym 24 axe a11y)
 - **Jakość:** ESLint + Prettier + Husky + lint-staged
-- **CI/CD:** GitHub Actions + Vercel (preview deploys per PR)
+- **CI/CD:** GitHub Actions (bramki jakości na każdej zmianie)
 
 ## Uruchomienie lokalne
 
@@ -64,36 +66,32 @@ npm run dev
 # 3. Bramki jakości (wszystko musi być zielone)
 npm run typecheck   # tsc --noEmit
 npm run lint        # ESLint
-npm run test        # Vitest (49 testów)
+npm run test        # Vitest (105 testów jednostkowych/komponentowych)
 npm run build       # produkcyjny build do dist/
 
 # 4. Podgląd produkcyjnego buildu (http://localhost:4173)
 npm run preview
 
 # 5. Testy e2e (Playwright/Chromium; build + preview odpala się automatycznie)
-npm run test:e2e
+npm run test:e2e    # 73 testy e2e, w tym 24 axe a11y
 # jednorazowo wcześniej: npx playwright install chromium
 ```
 
-## Deploy (Vercel)
+> **Tryb tylko lokalny:** to jest jedyny sposób uruchomienia aplikacji — właściciel zdecydował, że projekt nie jest publikowany w internecie. Dane żyją w localStorage, więc aplikacja działa offline i bez logowania.
 
-> Połączenie repo z Vercel i pierwszy deploy to **krok do wykonania przez właściciela konta** — w tej turze przygotowano tylko konfigurację (`apps/web/vercel.json` z SPA-rewrite, by twardy refresh na `/settings` nie dawał 404).
+## Uruchomienie (tylko lokalne)
 
-Krok po kroku (przez panel Vercel):
+> **Decyzja właściciela:** aplikacja działa **wyłącznie lokalnie** — bez publikacji w internecie, bez wdrożenia na serwer, bez publicznego repozytorium. Nie ma adresu produkcyjnego. Uruchamia się ją na własnym komputerze wg sekcji „Uruchomienie lokalne" wyżej.
 
-1. **New Project** → zaimportuj repo `wsb-piu-task-manager` z GitHuba.
-2. **Root Directory = `apps/web`** (ważne — apka nie jest w katalogu głównym).
-3. **Framework Preset = Vite** (build `npm run build`, output `dist`).
-4. **Brak zmiennych środowiskowych** — czysty frontend, dane w localStorage.
-5. Deploy → preview per PR automatycznie; merge do `main` → produkcja.
-
-Po pierwszym deployu uzupełnij linki w sekcji niżej.
+- **Tryb pracy:** `npm run dev` → `http://localhost:5173`.
+- **Wersja produkcyjna (do demo / prezentacji):** `npm run build && npm run preview` → `http://localhost:4173` (działa offline, bo dane są w localStorage).
+- Plik `apps/web/vercel.json` (SPA-rewrite) został w repo na wypadek przyszłej zmiany decyzji, ale **nie jest używany** — żadnego wdrożenia nie ma.
 
 ## 🔗 Linki
 
-- **Produkcja (Vercel):** _TODO — uzupełnić po pierwszym deployu właściciela_
-- **Figma Hi-Fi v0.1:** _TODO — wkleić link do pliku Figma (ramka „Nowe zadanie" node 133:2)_
-- **Repozytorium:** https://github.com/ (umbrella) — `wsb-piu-task-manager`
+- **Uruchomienie:** wersja lokalna (`localhost`) — patrz sekcje „Uruchomienie lokalne" i „Uruchomienie (tylko lokalne)" wyżej. Brak adresu w internecie (decyzja właściciela).
+- **Figma Hi-Fi v0.1:** https://www.figma.com/design/g491nUK7eH0wODYsySBEMf/WSB-PIU-%E2%80%94-Task-Manager-%C2%B7-Hi-Fi-v0.1 (9 ekranów × komputer/telefon = 26 ramek)
+- **Repozytorium:** lokalne — `wsb-piu-task-manager`, gałąź `feature/etap5-implementacja` (bez publikacji publicznej)
 
 ## Kryteria oceniania (z briefu)
 
