@@ -14,7 +14,7 @@ Niskim poziomem szczegółowości (low-fi: krem/atrament, czcionka „handwritte
 
 ## 1. Inwentarz ekranów
 
-10 widoków mobile (360 × 720) + 9 widoków desktop (1328 × 848). Każdy widok odpowiada konkretnej potrzebie z [analizy person](./Etap1_Analiza_UX.md) i [map podróży](./Etap2_Journey_Maps.md).
+10 widoków mobile (360 × 720) + 10 widoków desktop (1328 × 848). Każdy widok odpowiada konkretnej potrzebie z [analizy person](./Etap1_Analiza_UX.md) i [map podróży](./Etap2_Journey_Maps.md).
 
 | Widok | Mobile | Desktop | Główna potrzeba (persona) |
 |---|---|---|---|
@@ -23,7 +23,7 @@ Niskim poziomem szczegółowości (low-fi: krem/atrament, czcionka „handwritte
 | Dziś (kokpit) | ✅ | ✅ | Anna — „tylko dzisiejsze"; szybki przegląd po otwarciu |
 | Empty state | ✅ | ✅ | Pierwszy kontakt — co robić, gdy lista pusta (Anna) |
 | Wszystkie zadania | ✅ | ✅ (tabela) | Marek — dużo zadań z różnych kontekstów |
-| Nowe zadanie | ✅ (06a) | ✅ (panel) | CRUD: termin + priorytet + kategoria (Kasia, Marek) |
+| Nowe zadanie | ✅ (06a) | ✅ (D·10, panel) | CRUD: termin + priorytet + kategoria (Kasia, Marek) |
 | Edycja zadania | ✅ (06b) | ✅ (panel) | Zmiana terminu/szczegółów (Anna) |
 | Szukaj | ✅ | — (inline w tabeli) | Marek — wyszukiwarka po wielu kontekstach |
 | Filtry | ✅ (bottom sheet) | ✅ (popover) | Marek/Anna — filtrowanie i sortowanie |
@@ -64,8 +64,10 @@ Wzorzec: split-view (lista zawsze widoczna), stały sidebar, nowe/edycja w prawy
 | **D·05 · Szczegóły / edycja** (panel) | **D·06 · Popover filtrów** |
 | ![D07 Kategorie](./docs/wireframes/desktop_07_kategorie.png) | ![D08 Ustawienia](./docs/wireframes/desktop_08_ustawienia.png) |
 | **D·07 · Kategorie** | **D·08 · Ustawienia** |
-| ![D09 Usuwanie](./docs/wireframes/desktop_09_usuwanie.png) | |
-| **D·09 · Modal usuwania** | |
+| ![D09 Usuwanie](./docs/wireframes/desktop_09_usuwanie.png) | ![D10 Nowe zadanie](./docs/wireframes/desktop_10_nowe.png) |
+| **D·09 · Modal usuwania** | **D·10 · Nowe zadanie** (panel) |
+
+**D·10 · Nowe zadanie** — dedykowany panel dodawania zadania na desktopie: tytuł, termin + godzina, priorytet (segmenty), kategoria (chipy), notatka, akcje „Dodaj zadanie" / „Anuluj". Sidebar bez aktywnego elementu, panel na całą szerokość (środkowa lista ukryta), bez akcji „Usuń". Odpowiada ekranowi Hi-Fi „Nowe zadanie" (node 133:2) — domyka spójność Low-Fi ↔ Hi-Fi, bo Hi-Fi ma osobny ekran dodawania, którego wcześniej brakowało w wireframe'ach desktop.
 
 ---
 
