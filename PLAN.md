@@ -12,8 +12,8 @@
 |---|---|---|
 | Brief prowadzącego (`Projetkowanie_projekt.pdf`) | ✅ przeczytany | 7 etapów, min. 3 userów w testach, PDF dokumentacja 2–4 strony |
 | Etap 1 — Analiza UX (`Etap1_Analiza_UX.md`) | ✅ ukończony | 3 persony: Kasia, Marek, Anna |
-| Etap 2 — Journey Maps (`Etap2_Journey_Maps.md`) | 🟡 w trakcie | Kasia ✅, Marek ✅, **Anna ❌ do zrobienia** |
-| Low-Fi Wireframes + User Flow | ❌ nie zaczęte | W briefie to jest Etap 2; u nas dopiero Etap 4 wg README |
+| Etap 2 — Journey Maps (`Etap2_Journey_Maps.md`) | ✅ ukończony | Kasia ✅, Marek ✅, Anna ✅ (2026-04-24) |
+| Low-Fi Wireframes + User Flow (`Etap3_Wireframes.md`) | ✅ ukończony | v2 — 10 mobile + 9 desktop + 2 user flow, 21 PNG w `docs/wireframes/`; źródło prawdy Figma |
 | Hi-Fi Prototype (Figma) | ❌ nie zaczęte | |
 | Testy użyteczności (min. 3 os.) | ❌ nie zaczęte | **Brief mówi: testować prototyp, nie implementację** |
 | Implementacja React | ❌ nie zaczęte | Stack planowany: React + Vite + TypeScript |
@@ -24,7 +24,7 @@
 
 1. **Kolejność etapów w README ≠ brief.** README zaczyna od Journey Maps jako Etap 2, a brief prowadzącego — od Low-Fi Wireframes. Journey Maps to wartościowy dodatek UX, ale nie jest w briefie. **Sugestia:** traktować Journey Maps jako część „Etapu 1 rozszerzonego" i w numeracji oddania trzymać się briefu (bo tak będzie oceniane).
 2. **Testy użyteczności w README są po implementacji.** W briefie są **po prototypie Hi-Fi i przed implementacją** — to ważne, bo testowanie na prototypie Figmy jest o dwa rzędy wielkości tańsze niż przerabianie działającego kodu React.
-3. **Anna nie ma Journey Map.** Dokończyć przed wejściem w wireframes (jej potrzeba czytelności i dużych elementów jest decydująca dla designu).
+3. **Journey Map Anny ukończona** (2026-04-24). Jej potrzeba czytelności i dużych elementów stała się podstawą cross-persona decisions — zobacz sekcję decyzji projektowych w `Etap2_Journey_Maps.md`.
 
 ---
 
@@ -134,13 +134,15 @@ Kasia używa telefonu → zaczynamy od mobile. Breakpointy do ustalenia w Figmie
 
 ### 📘 ETAP 1 (bonus) — Dokończenie Journey Maps
 
+**Status:** ✅ Ukończone (2026-04-24)
+
 **Cel edukacyjny:** nauczyć się, że journey map to narzędzie do znajdowania **możliwości** (Opportunities), nie do opisywania co user robi. Każda „Szansa" w mapie → konkretny feature lub decyzja UI.
 
-**Do zrobienia:**
-1. Napisać Journey Map dla Anny (nauczycielka, persona 3). Scenariusz sugerowany: *„Anna chce rano przejrzeć dzisiejsze zadania i oznaczyć sprawdzone. Używa laptopa w szkole."*
-2. Zaktualizować sekcję „Kluczowe decyzje" o wnioski z Anny (prawdopodobnie: **większe elementy, wysokokontrastowy tryb, ograniczenie opcji widocznych na raz**).
+**Co zostało zrobione:**
+1. ✅ Napisana Journey Map dla Anny (nauczycielka, persona 3) — scenariusz: *„Poniedziałek 7:45, Anna w pokoju nauczycielskim przegląda dzisiejsze zadania, oznacza wykonane z weekendu, dopisuje nowe."* 5 faz (Otwarcie, Przegląd, Oznaczenie, Dodanie, Kontrolne sprawdzenie).
+2. ✅ Zaktualizowana sekcja „Kluczowe decyzje" — 15 cross-persona decisions, w tym: **etykiety nad polami (nie placeholdery), checkbox 32×32 px, ludzkie komunikaty walidacji, brak modal-potwierdzeń dla akcji odwracalnych, automatyczny zapis do localStorage**.
 
-**Definition of Done:** plik `Etap2_Journey_Maps.md` ma 3 pełne mapy + cross-persona opportunities.
+**Definition of Done:** ✅ plik `Etap2_Journey_Maps.md` ma 3 pełne mapy + cross-persona opportunities.
 
 **Pułapka:** pisanie journey map tak, że każda faza brzmi jak „user klika X, user klika Y". To nie to. Ważne są **Myśl / Emocja / Szansa** — one generują decyzje designerskie.
 
@@ -180,13 +182,13 @@ Kasia używa telefonu → zaczynamy od mobile. Breakpointy do ustalenia w Figmie
 
    Użyj symboli: prostokąt = ekran, romb = decyzja, strzałka = akcja. Narzędzie: FigJam, Whimsical albo natywnie w Figmie.
 
-**Definition of Done:**
-- [ ] 6+ wireframes w Figmie (4 wymagane + empty state + filtrowanie)
-- [ ] Plik `Etap3_Wireframes.md` w repo z:
-  - Osadzonymi screenami (eksport PNG do `docs/wireframes/`)
-  - Uzasadnieniem każdego layoutu linkujące do persony/journey
-- [ ] User Flow diagram (eksport PNG + link do Figmy)
-- [ ] Commit: `feat(etap2): dodaj low-fi wireframes i user flow`
+**Definition of Done:** ✅ ukończony (2026-05-25, v2)
+- [x] 6+ wireframes w Figmie (dostarczono 19 widoków: 10 mobile + 9 desktop)
+- [x] Plik `Etap3_Wireframes.md` w repo z:
+  - Osadzonymi screenami (21 eksportów PNG w `docs/wireframes/`)
+  - Uzasadnieniem każdego layoutu linkującym do persony/journey (sekcja 5 — 6 decyzji layoutowych)
+- [x] User Flow diagram (2 diagramy — mobile + desktop, eksport PNG + link do Figmy)
+- [x] Commit: `feat(etap2): low-fi wireframes v2 + user flow`
 
 **Pułapki:**
 - Pisanie lorem ipsum w wireframes. **Używaj realistycznych tekstów** („Przygotuj sprawdzian z rachunku różniczkowego", nie „Lorem ipsum dolor"). Realizm tekstu zmienia projekt.
@@ -604,7 +606,7 @@ Brief: **18 godzin laboratoryjnych.** Realnie (z pracą własną): 30–50h. Tyg
 
 | Tydzień | Etap | Szacowany czas |
 |---|---|---|
-| W1 (bieżący) | Dokończ Etap 1 (Anna) + planowanie | 2h |
+| W1 | ✅ Dokończono Etap 1 (Anna) + planowanie | 2h |
 | W2 | Etap 2 — Wireframes + User Flow | 6h |
 | W3 | Etap 3 (1/2) — Design tokens + komponenty w Figmie | 6h |
 | W4 | Etap 3 (2/2) — ekrany Hi-Fi + prototyp interaktywny | 6h |
@@ -633,19 +635,17 @@ Brief: **18 godzin laboratoryjnych.** Realnie (z pracą własną): 30–50h. Tyg
 
 ## 8. 🚀 START HERE — gdzie zaczniesz w następnej sesji
 
-Stan na zakończenie sesji **2026-04-23**:
-- Plan (ten plik) gotowy
-- README do aktualizacji
-- Pamięć zapisana
+Stan na zakończenie sesji **2026-04-24**:
+- Journey Map Anny ukończona (5 faz + 15 cross-persona decisions)
+- Etap 1 rozszerzony (Journey Mapping) zamknięty — gotowi do Etapu 2 (Low-Fi Wireframes)
+- PLAN.md i README zaktualizowane o nowy status
 
-**Następny krok (priorytet 1):** **Dokończyć Journey Map dla Anny** w `Etap2_Journey_Maps.md`. To 1–2h pracy, odblokowuje myślenie o wireframes.
-
-**Drugi krok (priorytet 2):** **Zamknąć decyzje architektoniczne z sekcji 3** — zwłaszcza:
+**Następny krok (priorytet 1):** **Zamknąć decyzje architektoniczne z sekcji 3** — zwłaszcza:
 - CSS Modules czy Tailwind? *(preferencja w sekcji 3.1; poprosić Darka o decyzję)*
 - Czy dodajemy routing? *(decyzja po wireframes, ale warto mieć opinię)*
 - Deadline oddania projektu? *(krytyczne dla harmonogramu)*
 
-**Trzeci krok (priorytet 3):** Rozpocząć Etap 2 — wireframes. Pierwsze zadanie: założyć plik w Figmie + content inventory (sekcja 4, Etap 2, krok 1).
+**Drugi krok (priorytet 2):** Rozpocząć Etap 2 — wireframes. Pierwsze zadanie: założyć plik w Figmie + content inventory (sekcja 4, Etap 2, krok 1).
 
 ---
 
