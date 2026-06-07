@@ -14,6 +14,7 @@ import {
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { FilterPanel } from '@/components/FilterPanel';
 import { TaskCard } from '@/components/TaskCard';
+import { TaskTable } from '@/components/TaskTable';
 import { EmptyState } from '@/components/EmptyState';
 import { ProgressBar } from '@/components/ProgressBar';
 import { StreakBadge } from '@/components/StreakBadge';
@@ -251,29 +252,50 @@ export function TodayPage() {
           />
         )
       ) : (
-        <ul className="space-y-2">
-          {tasks.map((task) => (
-            <li key={task.id}>
-              <TaskCard
-                task={task}
-                category={
-                  task.categoryId
-                    ? state.categories[task.categoryId]
-                    : undefined
-                }
-                onToggle={handleToggle}
-                onEdit={(id) => navigate(`/zadanie/${id}`)}
-                onDelete={(id) => setPendingDelete(id)}
-                onUpdateNote={(id, description) =>
-                  dispatch({
-                    type: 'task/update',
-                    payload: { id, changes: { description } },
-                  })
-                }
-              />
-            </li>
-          ))}
-        </ul>
+        <>
+          {/* Desktop: ta sama tabela z kolumnami co „Wszystkie" (Zadanie / Termin /
+              Priorytet / Kategoria) — spójne rozmieszczenie etykiet między widokami. */}
+          <div className="hidden md:block">
+            <TaskTable
+              tasks={tasks}
+              categories={state.categories}
+              onToggle={handleToggle}
+              onOpen={(id) => navigate(`/zadanie/${id}`)}
+              onDelete={(id) => setPendingDelete(id)}
+              onUpdateNote={(id, description) =>
+                dispatch({
+                  type: 'task/update',
+                  payload: { id, changes: { description } },
+                })
+              }
+            />
+          </div>
+
+          {/* Mobile: kartki (TaskCard), bez kolumn — jak dotychczas. */}
+          <ul className="space-y-2 md:hidden">
+            {tasks.map((task) => (
+              <li key={task.id}>
+                <TaskCard
+                  task={task}
+                  category={
+                    task.categoryId
+                      ? state.categories[task.categoryId]
+                      : undefined
+                  }
+                  onToggle={handleToggle}
+                  onEdit={(id) => navigate(`/zadanie/${id}`)}
+                  onDelete={(id) => setPendingDelete(id)}
+                  onUpdateNote={(id, description) =>
+                    dispatch({
+                      type: 'task/update',
+                      payload: { id, changes: { description } },
+                    })
+                  }
+                />
+              </li>
+            ))}
+          </ul>
+        </>
       )}
 
       <DeleteTaskDialog

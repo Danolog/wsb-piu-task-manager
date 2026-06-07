@@ -90,12 +90,18 @@ describe('TodayPage (P-D)', () => {
     seedWith([task({ id: 'a', title: 'Zadanie dnia', dueDate: t })]);
     renderToday();
 
-    await user.click(screen.getByRole('checkbox'));
+    // Wiersze na dziś renderujemy na desktopie jako tabelę (jak „Wszystkie”),
+    // a na mobile jako kartki — w jsdom obie warstwy istnieją, więc zapytania
+    // o wiersz zawężamy do tabeli (spójnie z AllTasksPage.test).
+    const table = screen.getByRole('table');
+    await user.click(within(table).getByRole('checkbox'));
     expect(await screen.findByText('Zadanie ukończone')).toBeInTheDocument();
 
     // Cofnij wraca status do todo (checkbox odznaczony).
     await user.click(screen.getByRole('button', { name: 'Cofnij' }));
-    await waitFor(() => expect(screen.getByRole('checkbox')).not.toBeChecked());
+    await waitFor(() =>
+      expect(within(table).getByRole('checkbox')).not.toBeChecked(),
+    );
   });
 
   it('przycisk „Filtruj" zawęża listę dnia po priorytecie (POPRAWKA 2 — reuse FilterPanel)', async () => {
@@ -107,17 +113,18 @@ describe('TodayPage (P-D)', () => {
     ]);
     renderToday();
 
-    expect(screen.getByText('Pilne dziś')).toBeInTheDocument();
-    expect(screen.getByText('Zwykłe dziś')).toBeInTheDocument();
+    const table = screen.getByRole('table');
+    expect(within(table).getByText('Pilne dziś')).toBeInTheDocument();
+    expect(within(table).getByText('Zwykłe dziś')).toBeInTheDocument();
 
     // Otwórz panel filtrów (ten sam FilterPanel co „Wszystkie") i wybierz „pilne".
     await user.click(screen.getAllByRole('button', { name: /Filtruj/ })[0]!);
     await user.click(screen.getByRole('checkbox', { name: /pilne/ }));
 
     await waitFor(() =>
-      expect(screen.queryByText('Zwykłe dziś')).not.toBeInTheDocument(),
+      expect(within(table).queryByText('Zwykłe dziś')).not.toBeInTheDocument(),
     );
-    expect(screen.getByText('Pilne dziś')).toBeInTheDocument();
+    expect(within(table).getByText('Pilne dziś')).toBeInTheDocument();
   });
 
   it('kosz otwiera modal potwierdzenia → „Usuń zadanie" kasuje (POPRAWKA 4)', async () => {
@@ -126,8 +133,9 @@ describe('TodayPage (P-D)', () => {
     seedWith([task({ id: 'a', title: 'Do usunięcia', dueDate: t })]);
     renderToday();
 
+    const table = screen.getByRole('table');
     await user.click(
-      screen.getByRole('button', { name: 'Usuń zadanie: Do usunięcia' }),
+      within(table).getByRole('button', { name: 'Usuń zadanie: Do usunięcia' }),
     );
     const dialog = await screen.findByRole('dialog');
     expect(within(dialog).getByText('Usunąć zadanie?')).toBeInTheDocument();
@@ -136,7 +144,7 @@ describe('TodayPage (P-D)', () => {
       within(dialog).getByRole('button', { name: 'Usuń zadanie' }),
     );
     await waitFor(() =>
-      expect(screen.queryByText('Do usunięcia')).not.toBeInTheDocument(),
+      expect(within(table).queryByText('Do usunięcia')).not.toBeInTheDocument(),
     );
   });
 
@@ -146,13 +154,14 @@ describe('TodayPage (P-D)', () => {
     seedWith([task({ id: 'a', title: 'Zostaje', dueDate: t })]);
     renderToday();
 
+    const table = screen.getByRole('table');
     await user.click(
-      screen.getByRole('button', { name: 'Usuń zadanie: Zostaje' }),
+      within(table).getByRole('button', { name: 'Usuń zadanie: Zostaje' }),
     );
     const dialog = await screen.findByRole('dialog');
     await user.click(within(dialog).getByRole('button', { name: 'Anuluj' }));
 
-    expect(screen.getByText('Zostaje')).toBeInTheDocument();
+    expect(within(table).getByText('Zostaje')).toBeInTheDocument();
   });
 
   it('inline edycja notatki z listy zapisuje description (POPRAWKA 5)', async () => {
@@ -161,19 +170,20 @@ describe('TodayPage (P-D)', () => {
     seedWith([task({ id: 'a', title: 'Zadanie z notatką', dueDate: t })]);
     renderToday();
 
-    // Brak notatki → „Dodaj notatkę".
+    // Brak notatki → „Dodaj notatkę" (w tabeli desktopowej).
+    const table = screen.getByRole('table');
     await user.click(
-      screen.getByRole('button', { name: /Dodaj notatkę do zadania/ }),
+      within(table).getByRole('button', { name: /Dodaj notatkę do zadania/ }),
     );
-    const textarea = screen.getByRole('textbox', {
+    const textarea = within(table).getByRole('textbox', {
       name: /Notatka zadania/,
     });
     await user.type(textarea, 'Rozdziały 4-6');
-    await user.click(screen.getByRole('button', { name: 'Zapisz' }));
+    await user.click(within(table).getByRole('button', { name: 'Zapisz' }));
 
     // Notatka widoczna pod tytułem (description zapisane w stanie).
     await waitFor(() =>
-      expect(screen.getByText('Rozdziały 4-6')).toBeInTheDocument(),
+      expect(within(table).getByText('Rozdziały 4-6')).toBeInTheDocument(),
     );
   });
 });
