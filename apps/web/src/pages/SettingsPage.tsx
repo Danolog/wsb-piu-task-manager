@@ -91,8 +91,9 @@ function SectionCard({
 
 /**
  * Ustawienia (desktop) / „Ja" (mobile) wg D 22:147 / M 15:60 / dark M 17:80.
- * Sekcje KONTO (imię edytowalne, resetuj dane), WYGLĄD (tryb ciemny, gęstość),
- * POWIADOMIENIA (atrapy — decyzja 11.7), APLIKACJA (wersja). Link do /kategorie.
+ * Sekcje KONTO (imię edytowalne, resetuj dane), WYGLĄD (tryb ciemny),
+ * POWIADOMIENIA (codzienne podsumowanie — atrapa, decyzja 11.7), APLIKACJA
+ * (wersja). Link do /kategorie.
  */
 export function SettingsPage() {
   const { state, dispatch } = useAppState();
@@ -227,34 +228,9 @@ export function SettingsPage() {
             description={isDark ? 'Włączony' : 'Wygodniejszy wieczorem'}
             control={darkSwitch}
           />
-          <SettingRow
-            title="Gęstość listy"
-            description="Standardowa"
-            control={
-              <span className="text-sm text-ink-muted" aria-hidden="true">
-                <ChevronRight className="size-4" />
-              </span>
-            }
-          />
         </SectionCard>
 
         <SectionCard title="Powiadomienia">
-          <SettingRow
-            title="Przypomnienia"
-            description="O nadchodzących terminach"
-            control={
-              <Switch
-                checked={notifications.reminders}
-                onCheckedChange={(value) =>
-                  dispatch({
-                    type: 'ui/setNotification',
-                    payload: { key: 'reminders', value },
-                  })
-                }
-                aria-label="Przypomnienia o terminach"
-              />
-            }
-          />
           <SettingRow
             title="Codzienne podsumowanie"
             description="Rano o 8:00"

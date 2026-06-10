@@ -41,7 +41,7 @@ interface NavItem {
   icon: LucideIcon;
   /** Preset zliczany dla licznika w sidebarze (gdy ustawiony). */
   preset?: DatePreset;
-  /** Pokaż w mobilnym tab-barze (Dziś/Lista/Szukaj/Ja). */
+  /** Pokaż w mobilnym tab-barze (Dziś/Wszystkie/Zrobione/Szukaj/Ja). */
   mobile?: { label: string; icon: LucideIcon };
 }
 
@@ -62,7 +62,8 @@ const NAV_ITEMS: NavItem[] = [
     label: 'Wszystkie',
     icon: List,
     preset: 'all',
-    mobile: { label: 'Lista', icon: List },
+    // Etykieta mobilna spójna z desktopem („Wszystkie", nie „Lista").
+    mobile: { label: 'Wszystkie', icon: List },
   },
   {
     to: '/tydzien',
@@ -75,6 +76,8 @@ const NAV_ITEMS: NavItem[] = [
     label: 'Zrobione',
     icon: CheckCircle2,
     preset: 'done',
+    // Zrobione dostępne też na mobile (parność z desktopowym WIDOKI).
+    mobile: { label: 'Zrobione', icon: CheckCircle2 },
   },
   {
     to: '/szukaj',
@@ -290,7 +293,7 @@ function tabLinkClass(active: boolean): string {
   );
 }
 
-/** Dolny tab-bar (mobile < md): Dziś / Lista / Szukaj / Ja. */
+/** Dolny tab-bar (mobile < md): Dziś / Wszystkie / Zrobione / Szukaj / Ja. */
 function TabBar() {
   const mobileItems = NAV_ITEMS.filter((item) => item.mobile !== undefined);
   return (

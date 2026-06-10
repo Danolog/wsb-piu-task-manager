@@ -164,13 +164,15 @@ describe('AppShell — nawigacja i liczniki', () => {
     expect(within(studia!).getByText('2')).toBeInTheDocument();
   });
 
-  it('mobilny tab-bar ma pozycje Dziś/Lista/Szukaj/Ja', () => {
+  it('mobilny tab-bar ma pozycje Dziś/Wszystkie/Zrobione/Szukaj/Ja', () => {
     withUserAndTasks();
     renderApp('/dzis');
     const tabbar = screen.getByRole('navigation', {
       name: 'Nawigacja główna',
     });
-    expect(within(tabbar).getByText('Lista')).toBeInTheDocument();
+    // Etykieta „Wszystkie" (nie „Lista") + dodane „Zrobione" — parność z desktopem.
+    expect(within(tabbar).getByText('Wszystkie')).toBeInTheDocument();
+    expect(within(tabbar).getByText('Zrobione')).toBeInTheDocument();
     expect(within(tabbar).getByText('Szukaj')).toBeInTheDocument();
     expect(within(tabbar).getByText('Ja')).toBeInTheDocument();
   });
