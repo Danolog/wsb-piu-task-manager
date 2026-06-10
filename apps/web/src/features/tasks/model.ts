@@ -33,18 +33,12 @@ export interface User {
   name: string; // '' przed onboardingiem
 }
 
-/** Przełączniki powiadomień — atrapy frontendowe (decyzja 11.7), zapisywane w stanie. */
-export interface NotificationPrefs {
-  reminders: boolean;
-  dailySummary: boolean;
-}
-
 export interface AppState {
   schemaVersion: typeof SCHEMA_VERSION;
   tasks: Record<TaskId, Task>;
   categories: Record<string, Category>;
   user: User;
-  ui: { theme: Theme; notifications?: NotificationPrefs };
+  ui: { theme: Theme };
 }
 
 // ---------- Stałe walidacji ----------
@@ -160,11 +154,10 @@ export const appStateSchema = z.object({
   tasks: z.record(z.string(), taskSchema),
   categories: z.record(z.string(), categorySchema),
   user: userSchema,
+  // Zod domyślnie pomija (strip) nieznane klucze, więc starszy stan z
+  // `ui.notifications` (usunięta funkcja) zwaliduje się bez migracji — zbędne
+  // pole jest po cichu odrzucane z wyniku.
   ui: z.object({
     theme: themeSchema,
-    // Opcjonalne — starszy stan (bez powiadomień) waliduje się bez migracji wersji.
-    notifications: z
-      .object({ reminders: z.boolean(), dailySummary: z.boolean() })
-      .optional(),
   }),
 });

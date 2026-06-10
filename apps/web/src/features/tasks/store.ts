@@ -14,14 +14,7 @@ import type {
   TaskInput,
   Category,
   Theme,
-  NotificationPrefs,
 } from './model';
-
-/** Domyślne ustawienia powiadomień (atrapy) — gdy stan ich jeszcze nie ma. */
-export const DEFAULT_NOTIFICATIONS: NotificationPrefs = {
-  reminders: true,
-  dailySummary: false,
-};
 
 // ---------- Akcje (discriminated union) ----------
 
@@ -42,10 +35,6 @@ export type Action =
     }
   | { type: 'category/delete'; payload: { id: string } }
   | { type: 'ui/setTheme'; payload: { theme: Theme } }
-  | {
-      type: 'ui/setNotification';
-      payload: { key: keyof NotificationPrefs; value: boolean };
-    }
   | { type: 'user/setName'; payload: { name: string } }
   | { type: 'state/reset'; payload: { state: AppState } }
   | { type: 'state/hydrate'; payload: AppState };
@@ -198,20 +187,6 @@ export function rootReducer(state: AppState, action: Action): AppState {
 
     case 'ui/setTheme':
       return { ...state, ui: { ...state.ui, theme: action.payload.theme } };
-
-    case 'ui/setNotification': {
-      const current = state.ui.notifications ?? DEFAULT_NOTIFICATIONS;
-      return {
-        ...state,
-        ui: {
-          ...state.ui,
-          notifications: {
-            ...current,
-            [action.payload.key]: action.payload.value,
-          },
-        },
-      };
-    }
 
     case 'user/setName':
       return { ...state, user: { ...state.user, name: action.payload.name } };

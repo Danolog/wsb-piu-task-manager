@@ -14,11 +14,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
-import {
-  selectStreak,
-  selectTodayProgress,
-  DEFAULT_NOTIFICATIONS,
-} from '@/features/tasks/store';
+import { selectStreak, selectTodayProgress } from '@/features/tasks/store';
 import { seedState } from '@/features/tasks/storage';
 import { cn } from '@/lib/utils';
 
@@ -92,8 +88,8 @@ function SectionCard({
 /**
  * Ustawienia (desktop) / „Ja" (mobile) wg D 22:147 / M 15:60 / dark M 17:80.
  * Sekcje KONTO (imię edytowalne, resetuj dane), WYGLĄD (tryb ciemny),
- * POWIADOMIENIA (codzienne podsumowanie — atrapa, decyzja 11.7), APLIKACJA
- * (wersja). Link do /kategorie.
+ * ORGANIZACJA (link do /kategorie), APLIKACJA (wersja). Powiadomienia pominięte
+ * — brak backendu, więc bez martwych przełączników.
  */
 export function SettingsPage() {
   const { state, dispatch } = useAppState();
@@ -109,7 +105,6 @@ export function SettingsPage() {
     [state, today],
   );
 
-  const notifications = state.ui.notifications ?? DEFAULT_NOTIFICATIONS;
   // „Tryb ciemny" jako binarny przełącznik: efektywnie ciemny = theme 'dark'.
   const isDark = state.ui.theme === 'dark';
   const userInitial = state.user.name.trim().charAt(0).toUpperCase() || '·';
@@ -127,7 +122,7 @@ export function SettingsPage() {
     const fresh = {
       ...seedState(),
       user: { name: state.user.name },
-      ui: { theme: state.ui.theme, notifications },
+      ui: { theme: state.ui.theme },
     };
     dispatch({ type: 'state/reset', payload: { state: fresh } });
     setConfirmReset(false);
@@ -230,24 +225,9 @@ export function SettingsPage() {
           />
         </SectionCard>
 
-        <SectionCard title="Powiadomienia">
-          <SettingRow
-            title="Codzienne podsumowanie"
-            description="Rano o 8:00"
-            control={
-              <Switch
-                checked={notifications.dailySummary}
-                onCheckedChange={(value) =>
-                  dispatch({
-                    type: 'ui/setNotification',
-                    payload: { key: 'dailySummary', value },
-                  })
-                }
-                aria-label="Codzienne podsumowanie"
-              />
-            }
-          />
-        </SectionCard>
+        {/* Sekcja „Powiadomienia" usunięta — brak backendu do generowania
+            powiadomień (atrapy bez efektu), więc nie pokazujemy martwych
+            przełączników. */}
 
         {/* Link do kategorii — sekcja Ja na mobile, dostępne też na desktopie. */}
         <SectionCard title="Organizacja">

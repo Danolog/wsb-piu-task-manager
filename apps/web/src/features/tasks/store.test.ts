@@ -481,15 +481,7 @@ describe('rootReducer — task/saveEdit (P-F)', () => {
   });
 });
 
-describe('rootReducer — ui/setNotification + state/reset (P-H)', () => {
-  it('ui/setNotification ustawia przełącznik powiadomień', () => {
-    const next = rootReducer(seedState(), {
-      type: 'ui/setNotification',
-      payload: { key: 'dailySummary', value: true },
-    });
-    expect(next.ui.notifications?.dailySummary).toBe(true);
-  });
-
+describe('rootReducer — state/reset (P-H)', () => {
   it('state/reset podmienia stan na przekazany', () => {
     const withTask = addTask(seedState(), makeInput());
     const fresh = { ...seedState(), user: { name: 'Kasia' } };

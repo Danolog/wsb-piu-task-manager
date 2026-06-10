@@ -53,19 +53,6 @@ describe('SettingsPage / Ja (P-H)', () => {
     await waitFor(() => expect(readState().user.name).toBe('Tomek'));
   });
 
-  it('przełącznik powiadomień utrwala się w stanie', async () => {
-    const user = userEvent.setup();
-    seedWith();
-    renderSettings();
-
-    await user.click(
-      screen.getByRole('switch', { name: 'Codzienne podsumowanie' }),
-    );
-    await waitFor(() =>
-      expect(readState().ui.notifications?.dailySummary).toBe(true),
-    );
-  });
-
   it('reset danych czyści zadania (z potwierdzeniem), zachowuje imię', async () => {
     const user = userEvent.setup();
     seedWith(
