@@ -1,7 +1,7 @@
 # 0002. Podejście do stylowania: CSS Modules + CSS Variables vs Tailwind
 
-- **Status:** Proposed
-- **Data:** 2026-04-23
+- **Status:** Accepted — Opcja B (Tailwind v4 + shadcn/ui)
+- **Data:** 2026-04-23 (decyzja zatwierdzona 2026-06-02)
 - **Autor:** Darek
 
 ## Kontekst
@@ -70,19 +70,16 @@ Decyzja wpływa na:
 
 ## Decyzja
 
-**Do ustalenia z Darkiem.**
+**Opcja B — Tailwind CSS v4 + shadcn/ui** (decyzja Darka, 2026-06-02).
 
-Rekomendacja analizującego (Claude): **Opcja A (CSS Modules + CSS Variables)**, bo:
-1. Cel projektu to **nauka jak senior**, a nie „dowieźć szybko" — fundamenty CSS to większa inwestycja niż znajomość Tailwind
-2. Dark mode z CSS Variables to pokazowa technika dla portfolio („jak działa w produkcji")
-3. Brak dodatkowego narzędzia upraszcza setup i debugging
-4. Skala projektu (~15 komponentów) nie wymusza prędkości którą daje Tailwind
-
-**Alternatywnie uzasadniony wybór:** **Opcja B (Tailwind)**, jeśli priorytetem jest **szybkość dowozu i portfolio-ready look-and-feel** (Tailwind + shadcn/ui wygląda profesjonalnie out-of-the-box).
+Uzasadnienie: priorytetem jest **szybkość dowozu i portfolio-ready look-and-feel**. Tailwind + shadcn/ui daje profesjonalny wygląd out-of-the-box, gotowe i dostępne (a11y) komponenty (Radix pod spodem: focus trap, aria, obsługa klawiatury), wbudowany dark mode i wymuszone trzymanie się design tokenów. Mapowanie tokenów z Figmy realizujemy przez `@theme` (CSS variables) w Tailwind v4 — zachowujemy zaletę runtime-swap dark mode z Opcji A, bez ręcznego pisania każdego komponentu.
 
 ## Konsekwencje
 
-_(wypełnić po decyzji)_
+- Tailwind v4 (plugin `@tailwindcss/vite`, konfiguracja w CSS przez `@theme`, brak `tailwind.config.js` jako wymogu).
+- shadcn/ui jako źródło prymitywów UI (kopiowane do repo, nie zależność runtime).
+- Ryzyko niespójności Tailwind v4 ↔ shadcn — weryfikacja w paczce P0; fallback: pin Tailwind v3 (udokumentować osobnym ADR jeśli zajdzie).
+- Plan implementacji wykorzystujący tę decyzję: `docs/Etap5_Implementation_Plan.md`.
 
 ## Kiedy wrócić do tej decyzji
 

@@ -1,0 +1,13 @@
+{
+  "name": "wsb-piu-task-manager",
+  "private": true,
+  "version": "0.0.0",
+  "description": "WSB-PIU Task Manager — monorepo root (aplikacja w apps/web)",
+  "scripts": {
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7"
+  }
+}
