@@ -9,25 +9,25 @@ Lista zadań odzwierciedlająca 7 etapów z briefu projektowego.
 - [x] Zdefiniowanie minimalnego zakresu funkcjonalności aplikacji
 
 ## Etap 2: Tworzenie szkiców interfejsu (Low-Fi) i mapy aplikacji
-- [ ] Przygotowanie szkiców Low-Fi głównych ekranów
-- [ ] Zaprojektowanie widoków: lista zadań, dodawanie zadania, edycja zadania, ustawienia
-- [ ] Stworzenie mapy przepływu (User Flow)
+- [x] Przygotowanie szkiców Low-Fi głównych ekranów
+- [x] Zaprojektowanie widoków: lista zadań, dodawanie zadania, edycja zadania, ustawienia
+- [x] Stworzenie mapy przepływu (User Flow)
 
 ## Etap 3: Tworzenie prototypu Hi-Fidelity (Figma)
-- [ ] Dobór kolorystyki, typografii i ikon
-- [ ] Przygotowanie szczegółowego projektu wizualnego interfejsu
-- [ ] Zbudowanie interaktywnego prototypu gotowego do przeklikania
+- [x] Dobór kolorystyki, typografii i ikon
+- [x] Przygotowanie szczegółowego projektu wizualnego interfejsu
+- [x] Zbudowanie interaktywnego prototypu gotowego do przeklikania
 
 ## Etap 4: Testy użyteczności (na prototypie z Figmy)
-- [ ] Przygotowanie prostego scenariusza testowego
-- [ ] Przeprowadzenie testów z minimum 3 użytkownikami
-- [ ] Spisanie problemów i naniesienie poprawek na prototyp
+- [x] Przygotowanie prostego scenariusza testowego
+- [x] Przeprowadzenie testów z minimum 3 użytkownikami
+- [x] Spisanie problemów i naniesienie poprawek na prototyp
 
 ## Etap 5: Implementacja frontend (React)
-- [ ] Setup środowiska 
-- [ ] Zaimplementowanie podstawowych widoków aplikacji
-- [ ] Oprogramowanie interakcji użytkownika (dodawanie, usuwanie, edycja zadań)
-- [ ] Zadbanie o responsywność (desktop + mobile)
+- [x] Setup środowiska 
+- [x] Zaimplementowanie podstawowych widoków aplikacji
+- [x] Oprogramowanie interakcji użytkownika (dodawanie, usuwanie, edycja zadań)
+- [x] Zadbanie o responsywność (desktop + mobile)
 
 ## Etap 6: Ostateczne testy i optymalizacja
 - [ ] Sprawdzenie poprawności działania aplikacji (wyłapanie bugów)
