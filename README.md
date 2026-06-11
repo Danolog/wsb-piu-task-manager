@@ -27,8 +27,8 @@ npm run dev
 ```
 
 ## Zespół projektowy
-- **Mateusz Jendzul** – 
-- **Dariusz Gradzik** – 
-- **Piotr Kiecko** – 
-- **Piotr Dobraniecki** – 
+- **Mateusz Jendzul** 
+- **Dariusz Gradzik**
+- **Piotr Kiecko**
+- **Piotr Dobraniecki**
 
