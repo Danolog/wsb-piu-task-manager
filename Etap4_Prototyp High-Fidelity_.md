@@ -1,4 +1,4 @@
-# Etap 4 — Prototyp High-Fidelity (Hi-Fi) i Design System
+# Prototyp High-Fidelity (Hi-Fi) i Design System
 
 > **Mapowanie do briefu:** To jest **Etap 3 wg briefu** („Projekt wizualny i prototyp Hi-Fidelity", 20% oceny). Numeracja plików w repozytorium jest przesunięta o jeden w stosunku do briefu.
 > **Status:** Ukończony · **Źródło prawdy:** Figma — WSB PIU · Task Manager
