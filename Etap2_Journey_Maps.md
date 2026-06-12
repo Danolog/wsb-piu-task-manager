@@ -1,4 +1,4 @@
-# Etap 2 — Journey Maps użytkowników
+# Journey Maps użytkowników
 
 Metodologia: Journey Mapping wg NN/g (Nielsen Norman Group, "Journey Mapping 101").
 Dla każdej persony tworzymy mapę z elementami: Fazy, Akcje, Myśli, Emocje, Szanse (Opportunities).
