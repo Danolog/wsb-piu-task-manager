@@ -1,4 +1,4 @@
-# Etap 3 — Low-Fi Wireframes + User Flow
+# Low-Fi Wireframes + User Flow
 
 > Mapowanie do briefu: to jest **Etap 2 wg briefu** („Wireframes i struktura aplikacji", 10% oceny).
 > Numeracja plików w repo jest przesunięta o jeden (Etap1 = analiza, Etap2 = journey maps bonus, Etap3 = wireframes).
