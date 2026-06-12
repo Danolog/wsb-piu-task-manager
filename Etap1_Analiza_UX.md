@@ -1,4 +1,4 @@
-# Etap 1 — Analiza potrzeb użytkowników
+# Analiza potrzeb użytkowników
 
 ## Problem projektowy
 
